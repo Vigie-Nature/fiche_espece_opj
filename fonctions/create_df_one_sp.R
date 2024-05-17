@@ -105,7 +105,7 @@ df_ab_rel <- df_sp %>%
   mutate(sum_ab_rel = sum_ab/nb_part) %>%  # Division par le nombre de participations
   arrange(num_semaine)
 
-# Fréquence relative
+# Phénologie
 df_freq_rel <- df_sp_ab %>%
   mutate(num_semaine = as.integer(num_semaine)) %>%
   group_by(annee, num_semaine) %>%
@@ -114,6 +114,23 @@ df_freq_rel <- df_sp_ab %>%
                                       "num_semaine" = "num_semaine")) %>%
   mutate(freq_rel = if_else(is.na(sum_obs), 0, sum_obs/nb_part)) %>%   # Division par le nombre de participations
   arrange(num_semaine)
+
+# Présence moyenne
+df_date_wm = df_sp %>%
+  filter(abondance !=0, annee != strftime(Sys.Date(), "%Y")) %>%
+  mutate(semaine = as.integer(strftime(date_collection, '%V'))) %>%
+  group_by(annee) %>%
+  summarise(sum_sp = weighted.mean(semaine, abondance)) 
+
+df_date_sqrt = df_sp %>%
+  filter(abondance !=0, annee != strftime(Sys.Date(), "%Y")) %>%
+  mutate(semaine = as.integer(strftime(date_collection, '%V'))) %>%
+  left_join(df_date_wm, by = c("annee" = "annee")) %>%
+  mutate(minus = abondance*((semaine - sum_sp)^2) ) %>%
+  group_by(annee, sum_sp) %>%
+  summarise(sum_minus = sum(minus), 
+            n = n()) %>%
+  mutate(rmse = sqrt(sum_minus/n))
 
 #########################################
 #------------- Répartition -------------#
@@ -149,19 +166,19 @@ cat_jard <- c("0 m", "50 m", "500 m", "1000 m", "2000 m", "+ 2000 m")
 # Liste de paramètres à passer pour les histogrammes
 bois = list()
 bois[[1]] <- "distance_bois"
-bois[[2]] <- c("#7ce084", "#2bc259", "#025512", "#b19976", "#785016", "#331f00")
+bois[[2]] <- c("#2bc259", "#785016")
 bois[[3]] <- "Distance bois"
 bois[[4]] <- "Bois"
 
 champ = list()
 champ[[1]] <- "distance_champs"
-champ[[2]] <- c("#9d5d07", "#f5a130", "#fec982", "#82cbfe", "#0078ff", "#0107bc")
+champ[[2]] <- c("#f5a130", "#785016")
 champ[[3]] <- "Distance champ"
 champ[[4]] <- "Champ"
 
 prairie = list()
 prairie[[1]] <- "distance_prairie"
-prairie[[2]] <- c("#700080", "#bc18d4", "#e554fa", "#fabb54", "#f99a00", "#fe4100")
+prairie[[2]] <- c("#5faaff", "#785016")
 prairie[[3]] <- "Distance prairie"
 prairie[[4]] <- "Prairie"
 
@@ -321,13 +338,16 @@ df_tab = df_oui %>%
 #------- Phénologies conjointes --------#
 #########################################
 
+vec_name = c(sp_name, (df_oui %>% arrange(desc(corr)))$nom[1:5])
+
 df_coocc = df_all_sp %>%
-  filter(nom_espece %in% c(sp_name, (df_oui %>% arrange(desc(corr)))$nom[1:5])) %>%
+  filter(nom_espece %in% vec_name) %>%
     group_by(nom_espece, an_sem) %>%
     summarise(sum_ab = sum(abondance)) %>%
     group_by(nom_espece) %>%
     mutate(sum_sp = sum(sum_ab),
-           sum_ab_norm = sum_ab/sum_sp) %>%
+           sum_ab_norm = sum_ab/sum_sp,
+           nom_espece = factor(nom_espece, levels = vec_name)) %>%
     arrange(an_sem) %>%
     relocate(nom_espece, .before = an_sem)
 
@@ -364,21 +384,3 @@ if (file.exists("data/rdata/df_heatmap.rds") &
   
   saveRDS(object = df_heatmap, file = "data/rdata/df_heatmap.rds")
 }
-
-# Date d'apparition moyenne
-
-df_date_wm = df_sp %>%
-  filter(abondance !=0, annee != strftime(Sys.Date(), "%Y")) %>%
-  mutate(semaine = as.integer(strftime(date_collection, '%V'))) %>%
-  group_by(annee) %>%
-  summarise(sum_sp = weighted.mean(semaine, abondance)) 
-
-df_date_sqrt = df_sp %>%
-  filter(abondance !=0, annee != strftime(Sys.Date(), "%Y")) %>%
-  mutate(semaine = as.integer(strftime(date_collection, '%V'))) %>%
-  left_join(df_date_wm, by = c("annee" = "annee")) %>%
-  mutate(minus = abondance*((semaine - sum_sp)^2) ) %>%
-  group_by(annee, sum_sp) %>%
-  summarise(sum_minus = sum(minus), 
-            n = n()) %>%
-  mutate(rmse = sqrt(sum_minus/n))
