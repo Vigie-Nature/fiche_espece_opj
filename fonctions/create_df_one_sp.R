@@ -89,13 +89,6 @@ df_nb_obs_date <- df_sp %>%
   summarise(n = n()) %>%
   arrange(date)
 
-# Mois
-df_nb_obs_mois <- df_sp %>%
-  mutate(date_mois = strftime(as.Date(date_collection), "%G-%m")) %>%
-  group_by(date_mois) %>%
-  summarise(n = n()) %>%
-  mutate(date_mois = as.Date(paste0(date_mois, "-01")))
-
 # Calcul du nombre de jardins participant sur toute l'opération par semaine
 nb_part_par_sem = df_all_sp %>%
   mutate(num_semaine = as.integer(num_semaine)) %>%
@@ -150,14 +143,6 @@ df_gregarite = data.frame(nb_idv = as.numeric(names(summary(as.factor(df_sp_ab$a
 #--------------- Jardins ---------------#
 #########################################
 
-# Df des jardins par type d'habitat
-df_jardin = df_sp_ab %>%
-  group_by(jardin_id, distance_bois, distance_champs, distance_prairie) %>%
-  summarise(latitude = unique(latitude),
-            longitude = unique(longitude),
-            nobs = n()) %>%
-  filter(!is.na(latitude), !is.na(longitude))
-
 # Breaks pour les jardins
 cat_jard <- c("0 m", "50 m", "500 m", "1000 m", "2000 m", "+ 2000 m")
 
@@ -189,15 +174,6 @@ df_jardin_point = df_sp %>%
   filter(!is.na(latitude)) %>%
   mutate(Présence = if_else(sum_ab == 0, "Non vu", "Vu")) %>%
   arrange(Présence)
-
-# Df des jardins positionnés sur la carte par année
-df_jardin_point_year = df_sp %>%
-  group_by(annee, jardin_id, latitude, longitude) %>%
-  summarise(sum_ab = sum(abondance)) %>%
-  filter(!is.na(latitude)) %>%
-  mutate(Présence = if_else(sum_ab == 0, "Non vu", "Vu")) %>%
-  arrange(Présence)
-
 
 # Fonction à appliquer aux df pour les barycentres
 bary_function <- function(df,
@@ -252,8 +228,6 @@ df_bary_all_sp <- bary_function(df = df_all_sp,
                                 "longitude", "nom_espece"),
                         gb2 = c("annee", "nom_espece")) %>%
   mutate(nom_esp_min = if_else(nom_espece == sp_name, sp_name, "Autres"))
-
-# Df migration
 
 #########################################
 #--------------- Cartes ----------------#
@@ -391,4 +365,20 @@ if (file.exists("data/rdata/df_heatmap.rds") &
   saveRDS(object = df_heatmap, file = "data/rdata/df_heatmap.rds")
 }
 
+# Date d'apparition moyenne
 
+df_date_wm = df_sp %>%
+  filter(abondance !=0, annee != strftime(Sys.Date(), "%Y")) %>%
+  mutate(semaine = as.integer(strftime(date_collection, '%V'))) %>%
+  group_by(annee) %>%
+  summarise(sum_sp = weighted.mean(semaine, abondance)) 
+
+df_date_sqrt = df_sp %>%
+  filter(abondance !=0, annee != strftime(Sys.Date(), "%Y")) %>%
+  mutate(semaine = as.integer(strftime(date_collection, '%V'))) %>%
+  left_join(df_date_wm, by = c("annee" = "annee")) %>%
+  mutate(minus = abondance*((semaine - sum_sp)^2) ) %>%
+  group_by(annee, sum_sp) %>%
+  summarise(sum_minus = sum(minus), 
+            n = n()) %>%
+  mutate(rmse = sqrt(sum_minus/n))
