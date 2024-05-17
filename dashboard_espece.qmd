@@ -68,13 +68,13 @@ image_read(file_img)
 ::: {.valuebox icon="eye" color="#ced600"}
 Nombre de fois où au moins un individu a été observé :
 
-`{r} paste0(nb_obs_idv, " sur ", nrow(df_all_sp), " au total")`
+`{r} paste0(label_number(accuracy = 10)(nb_obs_idv), " sur ", label_number(accuracy = 10)(nrow(df_sp)), " au total")`
 :::
 
 ::: {.valuebox icon="eye-fill" color="#5bbdd6"}
 Nombre total d'individus observés :
 
-`{r} paste0(nb_idv_cpt, " sur ", sum(df_all_sp$abondance), " au total")`
+`{r} paste0(label_number(accuracy = 10)(nb_idv_cpt), " sur ", label_number(accuracy = 10)(sum(df_all_sp$abondance)), " au total")`
 :::
 
 ## Graphiques
@@ -139,6 +139,26 @@ aes_echarts(plot_e = df_freq_rel %>%
             title = "Nombre d'observations par jardin chaque semaine selon les années",
             line_color = year_colors)
 ```
+
+```{r}
+#| title: Présence moyenne
+
+ggplot(df_date_sqrt, aes(x = annee, y = sum_sp)) +
+  geom_errorbar(aes(x=annee, ymin=sum_sp-rmse, ymax=sum_sp+rmse),
+                width=0.4, colour="#bb680e", alpha=0.9, size=1.3) +
+  geom_point(colour = "#ffa600", size = 3) +
+  theme_cowplot() +
+  xlab("Année") +
+  ylab("Semaine de collection") +
+  ggtitle("Semaine moyenne d'apparition pondérée par l'abondance \net écart-type chaque année") +
+  theme(axis.text.x = element_text(size = 10),
+        axis.text.y = element_text(size = 10),
+        axis.title.x = element_text(size = 12),
+        axis.title.y = element_text(size = 12),
+        plot.title = element_text(face = "plain", size = 14)) +
+  coord_flip()
+```
+
 
 # Répartition {orientation="columns"}
 
@@ -530,7 +550,7 @@ plot_e2 <- df_coocc %>%
 
 aes_echarts(plot_e = plot_e1, xlab = "Semaine de collection",
             ylab = "Abondance",
-            title = "Abondance par semaine selon les années",
+            title = paste0("Abondance par semaine pour les 5 espèces co-occurrant le plus avec ", sp_name),
             line_color = sp_colors,
             one_y = FALSE)
 ```
@@ -540,7 +560,7 @@ aes_echarts(plot_e = plot_e1, xlab = "Semaine de collection",
 ```{r}
 aes_echarts(plot_e = plot_e2, xlab = "Semaine de collection",
             ylab = "Indice norm",
-            title = "Indice norm par semaine selon les années",
+            title = paste0("Indice norm par semaine pour les 5 espèces co-occurrant le plus avec ", sp_name),
             line_color = sp_colors,
             one_y = FALSE)
 ```
@@ -599,17 +619,6 @@ ggplot(df_histo_test, aes(x = reorder(nom_espece, m_abn), fill = ab_grega)) +
   coord_flip() +
   ylab("Espèce") +
   xlab("Proportion")
-```
-
-# Test mean
-
-```{r}
-ggplot(df_date_sqrt, aes(x = annee, y = sum_sp)) +
-  geom_errorbar(aes(x=annee, ymin=sum_sp-rmse, ymax=sum_sp+rmse),
-                width=0.4, colour="#bb680e", alpha=0.9, size=1.3) +
-  geom_point(colour = "#ffa600", size = 3) +
-  theme_cowplot() +
-  coord_flip()
 ```
 
 
