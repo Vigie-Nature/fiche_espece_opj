@@ -6,7 +6,7 @@
 
 # Histogramme
 gg_histo <- function(df_histo, x = "date", y = "sum_ab",
-                     ytxt = "Abondance totale", dmin, dmax){
+                     ytxt = "Abondance totale", dmin, dmax, title = ""){
   
   return(ggplot() +
            geom_bar(data = df_histo, aes(x = !!sym(x), y = !!sym(y)),
@@ -17,13 +17,15 @@ gg_histo <- function(df_histo, x = "date", y = "sum_ab",
            theme(axis.title.x = element_blank(),
                  axis.text.x = element_text(angle = 0, size = 8),
                  axis.title.y =  element_text(size = 11, color = "#ab0739"),
-                 axis.text.y = element_text(size = 8)) +
+                 axis.text.y = element_text(size = 8),
+                 plot.title = element_text(face = "plain", size = 9)) +
+           ggtitle(title) +
            ylab(ytxt) )
 }
 
 gg_line <- function(df_line, x = "date", y = "n",
                     xtxt = "Date de collection", ytxt = "Nombre de sessions",
-                    color = "#ff795c", dmin, dmax){
+                    color = "#ff795c", dmin, dmax, title = ""){
   ggplot(df_line, aes(x = !!sym(x), y = !!sym(y))) +
     geom_line(color = color) +
     theme_cowplot() +
@@ -32,7 +34,9 @@ gg_line <- function(df_line, x = "date", y = "n",
     theme(axis.title.x = element_text(size = 10),
           axis.text.x = element_text(angle = 0, size = 8),
           axis.title.y = element_text(size = 9, color = color),
-          axis.text.y = element_text(size = 8)) +
+          axis.text.y = element_text(size = 8),
+          plot.title = element_text(face = "plain", size = 9)) +
+    ggtitle(title) +
     xlab(xtxt) +
     ylab(ytxt)
 }
@@ -41,7 +45,7 @@ gg_line <- function(df_line, x = "date", y = "n",
 histo_line <- function(df_histo, x_h = "date", y_h = "sum_ab",
                        df_ligne, x_l = "date", y_l = "n",
                        div, xtxt = "Date de collection", ytxt = "Abondance",
-                       ytxtsec = "Nombre d'observations"){
+                       ytxtsec = "Nombre d'observations", title = ""){
   
   return(ggplot() +
     geom_bar(data = df_histo, aes(x = !!sym(x_h), y = !!sym(y_h)),
@@ -52,9 +56,11 @@ histo_line <- function(df_histo, x_h = "date", y_h = "sum_ab",
     scale_x_date(date_labels = "%Y-%b", date_breaks = "9 months") +
     theme(axis.text.x = element_text(angle = 0, size = 8),
           axis.title.y.left =  element_text(size = 12, color = "#ab0739"),
-          axis.title.y.right = element_text(size = 12, color = "#ff795c")) +
+          axis.title.y.right = element_text(size = 12, color = "#ff795c"),
+          plot.title = element_text(face = "plain", size = 12)) +
     xlab(xtxt) +
     ylab(ytxt) +
+    ggtitle(title) +
     scale_y_continuous(sec.axis = sec_axis(~./div, name = ytxtsec)))
 }
 
