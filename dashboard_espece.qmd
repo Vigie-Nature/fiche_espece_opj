@@ -11,6 +11,7 @@ format:
       - icon: arrow-bar-left
         href: ../programs/accueil.html
     embed-resources: true
+    css: ../programs/styles_dashboard.css
 execute:
   echo: false
   message : false
@@ -70,7 +71,7 @@ carte_ab(shape_map = france, fill_map = df_dep$cl_moy, fill_color = couleurs,
 
 ## Valuebox
 
-### Nombre d'observations {height="10%"}
+### Nombre d'observations {height="25%"}
 
 ::: {.valuebox icon="eye" color="#ced600"}
 Nombre de fois où au moins un individu a été observé :
@@ -78,7 +79,7 @@ Nombre de fois où au moins un individu a été observé :
 `{r} paste0(label_number(accuracy = 10)(nb_obs_idv), " sur ", label_number(accuracy = 10)(nrow(df_sp)), " observations")`
 :::
 
-### Nombre d'individus {height="10%"}
+### Nombre d'individus {height="25%"}
 
 ::: {.valuebox icon="eye-fill" color="#5bbdd6"}
 Nombre total d'individus observés :
@@ -86,7 +87,12 @@ Nombre total d'individus observés :
 `{r} paste0(label_number(accuracy = 10)(nb_idv_cpt), " sur ", label_number(accuracy = 10)(sum(df_all_sp$abondance)), " papillons vus")`
 :::
 
-### Blank {height="80%"}
+### Blank {height="50%"}
+
+```{r}
+#| classes: blank-output
+```
+
 
 ## Graphiques
 
@@ -161,7 +167,7 @@ grid.arrange(gg1, gg2, ncol = 1, heights=c(2, 1))
 #| fig-height: 4
 
 for(an in sort(unique(df_all_sp$annee))) {
-  cat(sprintf("\n\n## Moyenne en %d\n\n", an))
+  cat(sprintf("\n\n## %d\n\n", an))
   
   df_dep_an = df_dep_y %>%
     filter(annee == an) 
@@ -175,11 +181,13 @@ for(an in sort(unique(df_all_sp$annee))) {
 
   print(carte_ab(shape_map = france, fill_map = df_dep_an$cl_moy,
                  fill_color = couleurs, fill_cat = cat_carte_moy,
-                 fill_title = paste0("Abondance en ", an)))
+                 fill_title = paste0("Abondance relative en ", an)))
 
 }
 ```
 :::
+
+Pour une année, on calcule dans chaque département le nombre d'individus vus en moyenne dans un jardin.
 
 # Phénologie {orientation="columns"}
 
@@ -210,9 +218,9 @@ aes_echarts(plot_e = df_freq_rel %>%
 
 ### Présence moyenne
 ```{r}
-ggplot(df_date_sqrt, aes(x = annee, y = sum_sp)) +
+ggplot(df_date_wm_sqrt, aes(x = annee, y = sum_sp)) +
   geom_errorbar(aes(x=annee, ymin=sum_sp-rmse, ymax=sum_sp+rmse),
-                width=0.4, colour="#bb680e", alpha=0.9, size=1.3) +
+                width=0.4, colour="#bb680e", alpha=0.9, linewidth=1.3) +
   geom_point(colour = "#ffa600", size = 3) +
   theme_cowplot() +
   xlab("Année") +
@@ -223,13 +231,27 @@ ggplot(df_date_sqrt, aes(x = annee, y = sum_sp)) +
         axis.title.x = element_text(size = 12),
         axis.title.y = element_text(size = 12),
         plot.title = element_text(face = "plain", size = 14)) +
+  ylim(1,52)+
   coord_flip()
 ```
 :::
 
 ## Texte {width="30%"}
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+- Abondance relative : sur une semaine donnée, nombre de papillons observés divisé par le nombre de participations
+\begin{equation}
+\frac{Abondance_{semaine_{N}}}{Participations_{semaine_{N}}}
+\end{equation}
+
+- Phénologie : sur une semaine donnée, nombre d'observations du papillon divisé par le nombre de participations
+\begin{equation}
+\frac{Observations_{semaine_{N}}}{Participations_{semaine_{N}}}
+\end{equation}
+
+- Présence moyenne : moyenne des semaines d'observations du papillon (Sem) pondérée par l'abondance de la semaine (Ab)
+\begin{equation}
+\frac{Ab_{1}Sem_{1}+Ab_{2}Sem_{2}+ ... +Ab_{x}Sem_{x}}{Ab_{1}+Ab_{2}+ ... + Ab_{x}}
+\end{equation}
 
 # Grégarité {orientation="columns"}
 
@@ -259,7 +281,7 @@ ggplot(df_gregarite) +
 
 ### Toutes les espèces
 ```{r}
-ggplot(df_histo_test_3, aes(x = reorder(nom_espece, classif), fill = ab_grega)) +
+ggplot(df_gregarite_all, aes(x = reorder(nom_espece, classif), fill = ab_grega)) +
   geom_bar(aes(weight = prop_grega)) +
   geom_errorbar(aes(x = reorder(nom_espece, classif),
                     ymin = classif - sqrt_n,
@@ -275,10 +297,9 @@ ggplot(df_histo_test_3, aes(x = reorder(nom_espece, classif), fill = ab_grega)) 
 
 ```
 
-### Moyenne d'abondance
+### Grégarité moyenne
 ```{r}
-
-ggplot(df_histo_test2, aes(x = reorder(nom_espece, m_abn))) +
+ggplot(df_moyenne_greg, aes(x = reorder(nom_espece, m_abn))) +
   geom_bar(aes(weight = m_abn), fill = "#ffae57") +
   geom_errorbar( aes(x=nom_espece, ymin=m_abn-sd, ymax=m_abn+sd),
                  width=0.4, colour="#bb680e", alpha=0.9, size=1.3) +
@@ -292,7 +313,7 @@ ggplot(df_histo_test2, aes(x = reorder(nom_espece, m_abn))) +
 
 ## Texte {width="40%"}
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+Grégarité moyenne : on calcule la moyenne de l'abondance et l'écart-type pour toutes les observations d'une espèce où au moins un individu a été observé.
 
 # Jardins {orientation="columns"}
 
@@ -362,7 +383,7 @@ Nombre de jardins dans lesquels au moins un individu a été observé :
 `{r} paste0(nb_jardin_obs, " sur ", length(unique(df_all_sp$jardin_id)), " jardins")`
 :::
 
-## Carte + valuebox
+## Position + barycentre
 
 ### Cartes des jardins {.tabset}
 
