@@ -97,14 +97,17 @@ aes_echarts <- function(plot_e, xlab, ylab, title, line_color, one_y = TRUE){
 #########################################
 
 # Carte d'abondance
-carte_ab <- function(shape_map, fill_map, fill_title, fill_color, fill_cat){
-  
+carte_ab <- function(shape_map, fill_map, fill_title, fill_color,
+                     fill_cat, map_title = ""){
+
   carte <- ggplot(shape_map) + 
     geom_sf(aes(fill = fill_map), show.legend = "fill") +
     scale_fill_manual(values = fill_color, breaks = fill_cat, drop = FALSE)+
     labs(fill = fill_title) +
-    theme_light()
-  
+    ggtitle(map_title) +
+    theme_light() +
+    theme(title = element_text(size = 9))
+
   return(carte)
 }
 
