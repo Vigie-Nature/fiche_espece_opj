@@ -1,0 +1,10 @@
+
+.styled-output .cell-output {
+  background-color: lightgreen;
+  border-radius: 4px;
+}
+
+.styled-output .blank-output {
+  background-color: white;
+  border-radius: 4px;
+}
