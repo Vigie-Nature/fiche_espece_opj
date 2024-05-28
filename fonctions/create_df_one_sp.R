@@ -162,7 +162,7 @@ cat_carte_moy = c("0", "0-1", "2-5", "6-10", "+ de 10")
 
 #----- Indicateurs relatifs -----#
 
-# Calcul du nombre de jardins participant sur toute l'opération par semaine
+# Calcul du nombre de participations sur toute l'opération par semaine
 nb_part_par_sem = df_all_sp %>%
   mutate(num_semaine = as.integer(num_semaine)) %>%
   group_by(annee, num_semaine) %>%
@@ -221,8 +221,8 @@ df_gregarite = data.frame(nb_idv = as.numeric(names(summary(as.factor(df_sp_ab$a
 # Toutes les espèces
 df_gregarite_all = df_all_sp %>%
   filter(abondance!= 0) %>%
-  mutate(ab_grega = factor(if_else(abondance == 1, "1", "+ de 1"),
-                           levels = c("1", "+ de 1"))) %>%
+  mutate(ab_grega = factor(if_else(abondance == 1, "1 individu", "+ de 1 individu"),
+                           levels = c("1 individu", "+ de 1 individu"))) %>%
   group_by(nom_espece, ab_grega) %>%
   summarise(n = n()) %>%
   group_by(nom_espece) %>%
@@ -449,7 +449,7 @@ df_histo_test = df_all_sp %>%
   mutate(sum_n = sum(n)) %>%
   ungroup() %>%
   mutate(prop_grega = n/sum_n) %>%
-  full_join(df_moyenne_ab %>% select(nom_espece, m_abn), by = c("nom_espece" = "nom_espece"))
+  full_join(df_moyenne_greg %>% select(nom_espece, m_abn), by = c("nom_espece" = "nom_espece"))
 
 
 
