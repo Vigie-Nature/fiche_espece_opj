@@ -8,3 +8,8 @@
   background-color: white;
   border-radius: 4px;
 }
+
+.styled-output .blue-bg {
+  background-color: #00BBC1;
+  border-radius: 4px;
+}
