@@ -1,7 +1,53 @@
-# Fonctions graphiques
+# HEADER --------------------------------------------
+#
+# Author:     Maël Pretet
+# Copyright     Copyright 2024 - Maël Pretet
+# Email:      mael.pretet1@mnhn.fr
+#
+# Date:     2024-03-26
+#
+# Script Name:    fonctions/function_graphics.R
+#
+# Script Description:   Fonctions graphiques pour les figures de 
+#   la fiche espèce (script "dashboard_espece.qmd")
+#
+#
+# ------------------------------------
+
 
 #########################################
-#------------- Par années --------------#
+#------------ Observations -------------#
+#########################################
+
+gg_histo_plotly <- function(df_hp, x = "nom_espece", y = "rel_ab",
+                            fill = "nom_espece", 
+                            title = "Proportion d'abondance de chaque espèce parmi toutes les observations", 
+                            ytxt = "% d'abondance",
+                            limits, breaks, couleur){
+  
+  gg = df_hp %>%
+    ggplot() +
+    geom_bar(mapping = aes(x = !!sym(x), y = !!sym(y), fill = !!sym(fill),
+                           text = paste0(nom_espece, " : ",
+                                         scales::percent(!!sym(y), accuracy = 0.01))),
+             stat = "identity") +
+    scale_x_discrete(limits=limits) +
+    ylab(ytxt) +
+    ggtitle(title) +
+    theme_cowplot() +
+    theme(axis.title.y = element_blank(),
+          title = element_text(size = 9),
+          legend.position = "none" ) +
+    scale_fill_manual(breaks = breaks,
+                      values = couleur) +
+    scale_y_continuous(labels = scales::percent_format(accuracy = 1)) + 
+    coord_flip()
+  
+  return(ggplotly(gg, tooltip = "text"))
+}
+
+#########################################
+#-------- Variations annuelles ---------#
 #########################################
 
 # Histogramme
@@ -23,6 +69,7 @@ gg_histo <- function(df_histo, x = "date", y = "sum_ab",
            ylab(ytxt) )
 }
 
+# Données sous forme de ligne
 gg_line <- function(df_line, x = "date", y = "n",
                     xtxt = "Date de collection", ytxt = "Nombre de sessions",
                     color = "#ff795c", dmin, dmax, title = ""){
@@ -41,28 +88,24 @@ gg_line <- function(df_line, x = "date", y = "n",
     ylab(ytxt)
 }
 
-# Histogramme + line
-histo_line <- function(df_histo, x_h = "date", y_h = "sum_ab",
-                       df_ligne, x_l = "date", y_l = "n",
-                       div, xtxt = "Date de collection", ytxt = "Abondance",
-                       ytxtsec = "Nombre d'observations", title = ""){
+# Carte d'abondance
+carte_ab <- function(shape_map, fill_map, fill_title, fill_color,
+                     fill_cat, map_title = ""){
   
-  return(ggplot() +
-    geom_bar(data = df_histo, aes(x = !!sym(x_h), y = !!sym(y_h)),
-             color = "#8A173A", fill="#ab0739", stat="identity") +
-    geom_line(data = df_ligne, aes(x = !!sym(x_l), y = !!sym(y_l)*div, group = 1),
-              color = "#ff795c") +
-    theme_cowplot() +
-    scale_x_date(date_labels = "%Y-%b", date_breaks = "9 months") +
-    theme(axis.text.x = element_text(angle = 0, size = 8),
-          axis.title.y.left =  element_text(size = 12, color = "#ab0739"),
-          axis.title.y.right = element_text(size = 12, color = "#ff795c"),
-          plot.title = element_text(face = "plain", size = 12)) +
-    xlab(xtxt) +
-    ylab(ytxt) +
-    ggtitle(title) +
-    scale_y_continuous(sec.axis = sec_axis(~./div, name = ytxtsec)))
+  carte <- ggplot(shape_map) + 
+    geom_sf(aes(fill = fill_map), show.legend = "fill") +
+    scale_fill_manual(values = fill_color, breaks = fill_cat, drop = FALSE)+
+    labs(fill = fill_title) +
+    ggtitle(map_title) +
+    theme_light() +
+    theme(title = element_text(size = 9))
+  
+  return(carte)
 }
+
+#########################################
+#------------- Phénologie --------------#
+#########################################
 
 # Graphique en echarts4r
 aes_echarts <- function(plot_e, xlab, ylab, title, line_color, one_y = TRUE){
@@ -92,24 +135,37 @@ aes_echarts <- function(plot_e, xlab, ylab, title, line_color, one_y = TRUE){
   return(plot_e)
 }
 
+
+
+# Histogramme + line
+histo_line <- function(df_histo, x_h = "date", y_h = "sum_ab",
+                       df_ligne, x_l = "date", y_l = "n",
+                       div, xtxt = "Date de collection", ytxt = "Abondance",
+                       ytxtsec = "Nombre d'observations", title = ""){
+  
+  return(ggplot() +
+    geom_bar(data = df_histo, aes(x = !!sym(x_h), y = !!sym(y_h)),
+             color = "#8A173A", fill="#ab0739", stat="identity") +
+    geom_line(data = df_ligne, aes(x = !!sym(x_l), y = !!sym(y_l)*div, group = 1),
+              color = "#ff795c") +
+    theme_cowplot() +
+    scale_x_date(date_labels = "%Y-%b", date_breaks = "9 months") +
+    theme(axis.text.x = element_text(angle = 0, size = 8),
+          axis.title.y.left =  element_text(size = 12, color = "#ab0739"),
+          axis.title.y.right = element_text(size = 12, color = "#ff795c"),
+          plot.title = element_text(face = "plain", size = 12)) +
+    xlab(xtxt) +
+    ylab(ytxt) +
+    ggtitle(title) +
+    scale_y_continuous(sec.axis = sec_axis(~./div, name = ytxtsec)))
+}
+
+
+
 #########################################
 #--------------- Cartes ----------------#
 #########################################
 
-# Carte d'abondance
-carte_ab <- function(shape_map, fill_map, fill_title, fill_color,
-                     fill_cat, map_title = ""){
-
-  carte <- ggplot(shape_map) + 
-    geom_sf(aes(fill = fill_map), show.legend = "fill") +
-    scale_fill_manual(values = fill_color, breaks = fill_cat, drop = FALSE)+
-    labs(fill = fill_title) +
-    ggtitle(map_title) +
-    theme_light() +
-    theme(title = element_text(size = 9))
-
-  return(carte)
-}
 
 # Carte animée avec plotly
 gg_carte = function(an, df_sp, france){
