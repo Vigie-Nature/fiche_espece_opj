@@ -11,7 +11,6 @@ format:
       - icon: arrow-bar-left
         href: ../programs/accueil.html
     embed-resources: true
-    css: ../programs/styles_dashboard.css
 execute:
   echo: false
   message : false
@@ -89,10 +88,7 @@ Nombre total d'individus observés :
 
 ### Blank {height="50%"}
 
-```{r}
-#| classes: blank-output
-```
-
+La figure représente pour chaque espèce la proportion de l'abondance totale des papillons observés par les participants.
 
 ## Graphiques
 
@@ -140,7 +136,7 @@ ggplotly(gg, tooltip = "text")
 ```
 
 ```{r}
-#| title: "Abondance de l'espèce et observations totales"
+#| title: "Abondance de l'espèce et pression d'échantillonnage"
 
 datemin = min(as.Date(df_sp$date_collection)) - 7
 datemax = max(as.Date(df_sp$date_collection)) + 7
@@ -181,13 +177,13 @@ for(an in sort(unique(df_all_sp$annee))) {
 
   print(carte_ab(shape_map = france, fill_map = df_dep_an$cl_moy,
                  fill_color = couleurs, fill_cat = cat_carte_moy,
-                 fill_title = paste0("Abondance relative en ", an)))
+                 fill_title = paste0("Abondance moyenne en ", an)))
 
 }
 ```
 :::
 
-Pour une année, on calcule dans chaque département le nombre d'individus vus en moyenne dans un jardin.
+**Abondance moyenne** : pour une année, on calcule dans chaque département le nombre d'individus vus en moyenne dans un jardin.
 
 # Phénologie {orientation="columns"}
 
@@ -259,7 +255,7 @@ ggplot(df_date_wm_sqrt, aes(x = annee, y = sum_sp)) +
 
 :::panel-tabset
 
-### `r sp_name`
+### Une espèce
 ```{r}
 ggplot(df_gregarite) +
     geom_bar(aes(x = class_idv, y = freq_prc),
@@ -281,6 +277,11 @@ ggplot(df_gregarite) +
 
 ### Toutes les espèces
 ```{r}
+names_grega = unique(df_gregarite_all %>% arrange(classif) %>% select(nom_espece) %>% as.vector())
+color_txt = rep("black", length(names_grega$nom_espece))
+position_sp = which(unique(names_grega$nom_espece) == sp_name)
+color_txt[position_sp] = "red"
+
 ggplot(df_gregarite_all, aes(x = reorder(nom_espece, classif), fill = ab_grega)) +
   geom_bar(aes(weight = prop_grega)) +
   geom_errorbar(aes(x = reorder(nom_espece, classif),
@@ -293,12 +294,18 @@ ggplot(df_gregarite_all, aes(x = reorder(nom_espece, classif), fill = ab_grega))
   xlab("Espèce") +
   ylab("Proportion") +
   ggtitle("Proportion des observations 1 individu / plusieurs individus \npour chaque espèce") +
-  theme(title = element_text(size = 9)) 
+  theme(title = element_text(size = 9),
+        axis.text.y = element_text(color = color_txt))
 
 ```
 
 ### Grégarité moyenne
 ```{r}
+color_txt = rep("black", length(df_moyenne_greg$nom_espece))
+position_sp = which(df_moyenne_greg$nom_espece == sp_name)
+color_txt[position_sp] = "red"
+color_txt = rev(color_txt)
+
 ggplot(df_moyenne_greg, aes(x = reorder(nom_espece, m_abn))) +
   geom_bar(aes(weight = m_abn), fill = "#ffae57") +
   geom_errorbar( aes(x=nom_espece, ymin=m_abn-sd, ymax=m_abn+sd),
@@ -307,13 +314,18 @@ ggplot(df_moyenne_greg, aes(x = reorder(nom_espece, m_abn))) +
   ylab("Espèce") +
   xlab("Nombre d'individus") +
   ggtitle("Moyenne de l'abondance pour chaque espèce") +
-  theme(title = element_text(size = 9))
+  theme(title = element_text(size = 9),
+        axis.text.y = element_text(color = color_txt))
 ```
 :::
 
 ## Texte {width="40%"}
 
-Grégarité moyenne : on calcule la moyenne de l'abondance et l'écart-type pour toutes les observations d'une espèce où au moins un individu a été observé.
+Grégarité pour une espèce : on calcule la proportion d'individus pour différentes catégorie de nombres d'individus.
+
+Grégarité sur toutes les espèces: on calcule poru chaque espèce la proportion d'observations où on voit un seul individu et celle où on voit plus d'un individu ainsi que l'écart-type
+
+Grégarité moyenne : on calcule la moyenne de l'abondance et l'écart-type pour toutes les observations de chaque espèce où au moins un individu a été observé.
 
 # Jardins {orientation="columns"}
 
@@ -375,12 +387,24 @@ for(i in 1:3) {
 ```
 :::
 
-### Valuebox
+### Texte
 
-::: {.valuebox icon="flower3" color="#00BBC1"}
-Nombre de jardins dans lesquels au moins un individu a été observé :
+::: {.callout-note icon=false}
 
-`{r} paste0(nb_jardin_obs, " sur ", length(unique(df_all_sp$jardin_id)), " jardins")`
+## Histogramme
+
+Pour chaque catégorie de distance des jardins (<span style="color:#2bc259">distance au bois</span>, <span style="color:#f5a130">distance au champ</span>, <span style="color:#5faaff">distance à la prairie</span>), on montre la répartition de <span style="color:#785016">toutes les observations</span> effectuées, et la répartition des observations de l'espèce uniquement (au moins un individu a été vu).
+:::
+
+::: {.callout-note icon=false}
+
+## Cartes
+
+L'individu a été observé au moins une fois dans `{r} nb_jardin_obs` sur `{r} length(unique(df_all_sp$jardin_id))` jardins au total.
+
+- Position des jardins : on représente sur la carte en <span style="color:#00bec3">bleu</span> les jardins où l'espèce a été observée au moins une fois entre 2019 et 2024 et en <span style="color:#f7766c">orange</span> les jardins où elle n'a jamais été observée
+
+- Barycentre : on représente en <span style="color:#0baaff">bleu</span> le barycentre de tous les jardins ayant participé sur l'année, et en <span style="color:#d50404">rouge</span> le barycentre de ces jardins pondéré par l'abondance de l'espèce au cours de l'année
 :::
 
 ## Position + barycentre
@@ -507,6 +531,11 @@ for (year in c(2019)) {
 ## Heatmap
 
 ```{r}
+col_txt_htm_x = rep("#0ba208", length(colnames(df_heatmap)))
+col_txt_htm_y = rep("#2a7cf3", length(colnames(df_heatmap)))
+col_txt_htm_x[which(colnames(df_heatmap)==sp_name)] = "red"
+col_txt_htm_y[which(colnames(df_heatmap)==sp_name)] = "red"
+
 ggplot(reshape2::melt(df_heatmap), aes(x = Var1, y = Var2, fill = value)) +
   geom_tile(color = "white") +
   theme(axis.title.x = element_blank(),
@@ -514,8 +543,8 @@ ggplot(reshape2::melt(df_heatmap), aes(x = Var1, y = Var2, fill = value)) +
         title = element_text(size = 9),
   #       axis.text.x = element_text(size = 8, angle = 90, vjust = 0.4, hjust = 1),
   #       axis.text.y = element_text(size = 8)) +
-        axis.text.x = element_text(size = 8, angle = 90, vjust = 0.4, hjust = 1, colour = "#0ba208"),
-        axis.text.y = element_text(size = 8, color = "#2a7cf3")) +
+        axis.text.x = element_text(size = 8, angle = 90, vjust = 0.4, hjust = 1, colour = col_txt_htm_x),
+        axis.text.y = element_text(size = 8, color = col_txt_htm_y)) +
     scale_fill_gradient2(low = "white", high = "#fc1d1a") +
   # scale_fill_gradient2(low = "white", mid = "#ef5a58", high = "#005be0", midpoint = 0.5) +
   coord_fixed() +
