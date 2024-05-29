@@ -24,6 +24,8 @@ sp_name = params$sp_name
 source("fonctions/var.R")
 ```
 
+<!-- ####################################################################### -->
+
 # `{r} params$sp_name` {orientation="columns"}
 
 ```{r}
@@ -66,6 +68,8 @@ carte_ab(shape_map = france, fill_map = df_dep$cl_moy, fill_color = couleurs,
          map_title = paste0("Carte de distribution de l'abondance relative de l'espèce ", sp_name))
 ```
 
+<!-- ####################################################################### -->
+
 # Observations {orientation="columns"}
 
 ## Valuebox
@@ -93,47 +97,18 @@ La figure représente pour chaque espèce la proportion de l'abondance totale de
 ## Graphiques
 
 ```{r}
-gg = df_repartition %>%
-  ggplot() +
-    geom_bar(mapping = aes(x = nom_espece, y = rel_ab, fill = nom_espece,
-                           text = paste0(nom_espece, " : ",
-                                         scales::percent(rel_ab, accuracy = 0.01))),
-             stat = "identity") +
-    scale_x_discrete(limits=df_repartition$nom_espece) +
-    ylab("% d'abondance") +
-    ggtitle("Proportion d'abondance de chaque espèce parmi toutes les observations") +
-    theme_cowplot() +
-    theme(axis.title.y = element_blank(),
-          title = element_text(size = 9),
-          legend.position = "none" ) +
-    scale_fill_manual(breaks = df_repartition$nom_espece,
-                      values = df_repartition$couleur) +
-    scale_y_continuous(labels = scales::percent_format(accuracy = 1)) + 
-  coord_flip()
-
-ggplotly(gg, tooltip = "text")
+gg_histo_plotly(df_hp = df_repartition, limits = df_repartition$nom_espece,
+                breaks = df_repartition$nom_espece,
+                couleur = df_repartition$couleur)
 ```
+
+<!-- ####################################################################### -->
 
 # Variations annuelles
 
 ## Graphiques
 
 ### Abondance totale 
-<!-- {.tabset} -->
-
-```{r}
-# #| title: Semaine
-# 
-# div_obs = max((df_sp %>% group_by(an_sem) %>% summarise(n = sum(abondance)))$n) /
-#   max(df_nb_obs_date$n)
-# 
-# histo_line(df_histo = df_sp %>% 
-#              mutate(date = as.Date(date_collection)) %>%
-#              group_by(date) %>%
-#              summarise(sum_ab = sum(abondance)),
-#            df_ligne = df_nb_obs_date, div = div_obs,
-#            title = "Abondance et nombre de sessions d'observation par semaine")
-```
 
 ```{r}
 #| title: "Abondance de l'espèce et pression d'échantillonnage"
@@ -197,7 +172,7 @@ aes_echarts(plot_e = df_ab_rel %>%
               e_line(sum_ab_rel, symbol='none'),
             xlab = "Semaine de collection",
             ylab = "Indice d'abondance",
-            title = "Abondance relative par jardin chaque semaine",
+            title = "Abondance relative par participation chaque semaine",
             line_color = year_colors)
 ```
 
@@ -212,23 +187,9 @@ aes_echarts(plot_e = df_freq_rel %>%
             line_color = year_colors)
 ```
 
-### Présence moyenne
+### Pic d'activité
 ```{r}
-ggplot(df_date_wm_sqrt, aes(x = annee, y = sum_sp)) +
-  geom_errorbar(aes(x=annee, ymin=sum_sp-rmse, ymax=sum_sp+rmse),
-                width=0.4, colour="#bb680e", alpha=0.9, linewidth=1.3) +
-  geom_point(colour = "#ffa600", size = 3) +
-  theme_cowplot() +
-  xlab("Année") +
-  ylab("Semaine de collection") +
-  ggtitle("Semaine moyenne d'apparition pondérée par l'abondance \net écart-type chaque année") +
-  theme(axis.text.x = element_text(size = 10),
-        axis.text.y = element_text(size = 10),
-        axis.title.x = element_text(size = 12),
-        axis.title.y = element_text(size = 12),
-        plot.title = element_text(face = "plain", size = 14)) +
-  ylim(1,52)+
-  coord_flip()
+graph_pic(df_pic = df_date_wm_sqrt)
 ```
 :::
 
@@ -244,10 +205,12 @@ ggplot(df_date_wm_sqrt, aes(x = annee, y = sum_sp)) +
 \frac{Observations_{semaine_{N}}}{Participations_{semaine_{N}}}
 \end{equation}
 
-- Présence moyenne : moyenne des semaines d'observations du papillon (Sem) pondérée par l'abondance de la semaine (Ab)
+- Pic d'activité : moyenne des semaines d'observations du papillon (Sem) pondérée par l'abondance de la semaine (Ab)
 \begin{equation}
 \frac{Ab_{1}Sem_{1}+Ab_{2}Sem_{2}+ ... +Ab_{x}Sem_{x}}{Ab_{1}+Ab_{2}+ ... + Ab_{x}}
 \end{equation}
+
+<!-- ####################################################################### -->
 
 # Grégarité {orientation="columns"}
 
@@ -255,77 +218,54 @@ ggplot(df_date_wm_sqrt, aes(x = annee, y = sum_sp)) +
 
 :::panel-tabset
 
-### Une espèce
-```{r}
-ggplot(df_gregarite) +
-    geom_bar(aes(x = class_idv, y = freq_prc),
-             stat = "identity",
-             fill = "#8cb6ec") +
-  scale_x_discrete(limits=c("1", "2 à 4", "5 à 9", "10 et +")) +
-  theme_cowplot() + 
-  labs(x = "Nombre d'individus observés simultanément",
-       y = "% d'observations") +
-  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
-  ggtitle(paste0("Distribution de la grégarité de l'espèce ", sp_name)) +
-  theme(plot.title = element_text(face = "plain", size = 15),
-        axis.text.x = element_text(size = 12),
-        axis.text.y = element_text(size = 12),
-        axis.title.x = element_text(size = 14),
-        axis.title.y = element_text(size = 14))
-
-```
-
-### Toutes les espèces
-```{r}
-names_grega = unique(df_gregarite_all %>% arrange(classif) %>% select(nom_espece) %>% as.vector())
-color_txt = rep("black", length(names_grega$nom_espece))
-position_sp = which(unique(names_grega$nom_espece) == sp_name)
-color_txt[position_sp] = "red"
-
-ggplot(df_gregarite_all, aes(x = reorder(nom_espece, classif), fill = ab_grega)) +
-  geom_bar(aes(weight = prop_grega)) +
-  geom_errorbar(aes(x = reorder(nom_espece, classif),
-                    ymin = classif - sqrt_n,
-                    ymax = classif + sqrt_n),
-                width=.4, color = "#404040") +
-  scale_y_continuous(labels = scales::percent_format(accuracy = 1)) + 
-  coord_flip() +
-  labs(fill = "Grégarité") +
-  xlab("Espèce") +
-  ylab("Proportion") +
-  ggtitle("Proportion des observations 1 individu / plusieurs individus \npour chaque espèce") +
-  theme(title = element_text(size = 9),
-        axis.text.y = element_text(color = color_txt))
-
-```
-
-### Grégarité moyenne
+### Abondance moyenne par espèce
 ```{r}
 color_txt = rep("black", length(df_moyenne_greg$nom_espece))
 position_sp = which(df_moyenne_greg$nom_espece == sp_name)
 color_txt[position_sp] = "red"
 color_txt = rev(color_txt)
 
-ggplot(df_moyenne_greg, aes(x = reorder(nom_espece, m_abn))) +
-  geom_bar(aes(weight = m_abn), fill = "#ffae57") +
-  geom_errorbar( aes(x=nom_espece, ymin=m_abn-sd, ymax=m_abn+sd),
-                 width=0.4, colour="#bb680e", alpha=0.9, size=1.3) +
-  coord_flip() +
-  ylab("Espèce") +
-  xlab("Nombre d'individus") +
-  ggtitle("Moyenne de l'abondance pour chaque espèce") +
-  theme(title = element_text(size = 9),
-        axis.text.y = element_text(color = color_txt))
+histo_ab_mean(df_mg = df_moyenne_greg, color_txt = color_txt)
+```
+
+### Classes d'abondance pour l'espèce
+```{r}
+histo_grega(df_grega = df_gregarite,
+            title = paste0("Distribution de la grégarité de l'espèce ", sp_name))
+```
+
+### Indice de grégarité par espèce
+```{r}
+names_grega = unique(df_gregarite_all %>% arrange(classif) %>% select(nom_espece) %>% as.vector())
+color_txt = rep("black", length(names_grega$nom_espece))
+position_sp = which(unique(names_grega$nom_espece) == sp_name)
+color_txt[position_sp] = "red"
+
+histo_indice_greg(df_greg_all = df_gregarite_all, color_txt = color_txt)
 ```
 :::
 
 ## Texte {width="40%"}
 
-Grégarité pour une espèce : on calcule la proportion d'individus pour différentes catégorie de nombres d'individus.
+::: {.callout-note icon=false}
 
-Grégarité sur toutes les espèces: on calcule poru chaque espèce la proportion d'observations où on voit un seul individu et celle où on voit plus d'un individu ainsi que l'écart-type
+## Abondance moyenne par espèce
+On calcule la moyenne de l'abondance et l'écart-type pour toutes les observations de chaque espèce où au moins un individu a été observé.
+:::
 
-Grégarité moyenne : on calcule la moyenne de l'abondance et l'écart-type pour toutes les observations de chaque espèce où au moins un individu a été observé.
+::: {.callout-note icon=false}
+
+## Classes d'abondance pour l'espèce
+On calcule la proportion d'individus pour différentes catégorie de nombres d'individus.
+:::
+
+::: {.callout-note icon=false}
+
+## Indice de grégarité par espèce
+On calcule pour chaque espèce la proportion d'observations où on voit un seul individu et celle où on voit plus d'un individu ainsi que l'écart-type
+:::
+
+<!-- ####################################################################### -->
 
 # Jardins {orientation="columns"}
 
@@ -416,12 +356,16 @@ L'individu a été observé au moins une fois dans `{r} nb_jardin_obs` sur `{r} 
 
 ggplot(france) + 
     geom_sf(fill = "#f4f4f4") +
-    geom_point(data = df_jardin_point, aes(x = longitude, y = latitude, color=Présence)) +
+    geom_point(data = df_jardin_point, aes(x = longitude, y = latitude,
+                                           color=Présence, alpha = Présence)) +
     theme_light() +
     ggtitle(paste0("Positions des jardins ayant participé entre ",
             strftime(min(df_sp$date_collection), "%Y"), " et ",
             strftime(max(df_sp$date_collection), "%Y"))) +
-  theme(title = element_text(size = 9))
+  theme(title = element_text(size = 9)) +
+  # scale_color_manual(values = c("red", "blue")) +
+  scale_alpha_manual(values = c(0.7, 1)) +
+  guides(alpha = "none")
 
 ```
 
@@ -447,9 +391,8 @@ gg %>%
 
 ```
 
-
 ```{r}
-#| title: All.sp.bary
+#| title: Barycentre (toutes les espèces)
 
 legende = sort(c(unique(df_bary_all_sp$nom_esp_min), "Jardins"))
 col_leg = rep("#5F5F5F", length(legende))
@@ -488,6 +431,7 @@ gg
 
 ```
 
+
 # [Test] Cartes par mois {orientation="columns"}
 
 ## Column 1 {height="100%"}
@@ -525,6 +469,8 @@ for (year in c(2019)) {
 :::
 
 ::::
+
+<!-- ####################################################################### -->
 
 # [Test] Co-occurence {orientation="columns"}
 
@@ -576,6 +522,8 @@ df_tab %>%
    xlab("Nom de l'espèce") +
   ggtitle(paste0("% de co-occurence des autres espèces avec ", sp_name))
 ```
+
+<!-- ####################################################################### -->
 
 # [Test] Phénologies conjointes
 
