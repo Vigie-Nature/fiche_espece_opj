@@ -36,7 +36,7 @@ source("fonctions/library.R")
 ```{r}
 # Fonctions et environnement
 readRenviron(".env")
-source("fonctions/carte.R")
+# source("fonctions/carte.R")
 source("fonctions/function_graphics.R")
 source("fonctions/function_import_from_mosaic.R")
 # Création des data frame
@@ -170,7 +170,7 @@ for(an in sort(unique(df_all_sp$annee))) {
 aes_echarts(plot_e = df_ab_rel %>%
               e_charts(num_semaine) %>%
               e_line(sum_ab_rel, symbol='none'),
-            xlab = "Semaine de collection",
+            xlab = "Semaine de participation",
             ylab = "Indice d'abondance",
             title = "Abondance relative par participation chaque semaine",
             line_color = year_colors)
@@ -181,7 +181,7 @@ aes_echarts(plot_e = df_ab_rel %>%
 aes_echarts(plot_e = df_freq_rel %>%
               e_charts(num_semaine) %>%
               e_line(freq_rel, symbol='none'),
-            xlab = "Semaine de collection",
+            xlab = "Semaine de participation",
             ylab = "Fréquence relative",
             title = "Nombre d'observations par jardin chaque semaine selon les années",
             line_color = year_colors)
@@ -309,19 +309,9 @@ for(i in 1:3) {
       as.data.frame() %>%
     rbind(df_tot)
   
-  print(df_obs %>%
-    ggplot() +
-      geom_bar(aes(x = !!sym(lst_param[[i]][[1]]), y = nobs,
-                   fill = type),
-               stat = 'identity', position = "dodge") +
-      scale_x_discrete(limits=cat_jard) +
-      scale_fill_manual(values = lst_param[[i]][[2]])+
-      scale_y_continuous(labels = scales::percent_format(accuracy = 0.1)) +
-      xlab(lst_param[[i]][[3]]) +
-      ylab(paste0("% des observations")) +
-      ggtitle("% des observations dans une catégorie pour l'espèce et \nsur toutes les observations") +
-      theme_cowplot() +
-      theme(plot.title = element_text(face = "plain", size = 11)))
+  print(histo_jardin(df_jard = df_obs, x = lst_param[[i]][[1]],
+                     limits_x = cat_jard, val_fill = lst_param[[i]][[2]],
+                     xlab = lst_param[[i]][[3]]))
   
 }
 ```
@@ -354,41 +344,21 @@ L'individu a été observé au moins une fois dans `{r} nb_jardin_obs` sur `{r} 
 ```{r}
 #| title: Position des jardins
 
-ggplot(france) + 
-    geom_sf(fill = "#f4f4f4") +
-    geom_point(data = df_jardin_point, aes(x = longitude, y = latitude,
-                                           color=Présence, alpha = Présence)) +
-    theme_light() +
-    ggtitle(paste0("Positions des jardins ayant participé entre ",
-            strftime(min(df_sp$date_collection), "%Y"), " et ",
-            strftime(max(df_sp$date_collection), "%Y"))) +
-  theme(title = element_text(size = 9)) +
-  # scale_color_manual(values = c("red", "blue")) +
-  scale_alpha_manual(values = c(0.7, 1)) +
-  guides(alpha = "none")
-
+carte_point_jardin(france = france, df_jp = df_jardin_point,
+                   title = paste0("Positions des jardins ayant participé entre ",
+                                  strftime(min(df_sp$date_collection), "%Y"), " et ",
+                                  strftime(max(df_sp$date_collection), "%Y")))
 ```
 
 ```{r}
 #| title: Barycentre
 
-a = sort(c(sp_name, "Jardins"))
-b = c("#d50404", "#d50404")
-b[which(a == "Jardins")] = "#0baaff"
+names_sp = sort(c(sp_name, "Jardins"))
+col_sp = c("#d50404", "#d50404")
+col_sp[which(names_sp == "Jardins")] = "#0baaff"
 
-gg =ggplot(france) +
-  geom_sf(fill = "#f0f0f0", color = "#a0a0a0") +
-  geom_point(data = rbind(df_bary_one_sp, df_bary_base),
-             aes(x = longitude, y=latitude, color = nom_espece, frame = annee)) +
-  ggtitle("Barycentre des jardins et de l'espèce") +
-  theme(title = element_text(size = 9)) +
-  scale_color_manual(values = b) +
-  theme_minimal()
-
-gg %>%
-  ggplotly()  %>%
-  animation_opts(transition = 0, frame = 1000)
-
+carte_bary_one_df(france = france, df_bary = rbind(df_bary_one_sp, df_bary_base),
+                  col_val = col_sp)
 ```
 
 ```{r}
@@ -399,40 +369,17 @@ col_leg = rep("#5F5F5F", length(legende))
 col_leg[which(legende == "Jardins")] = "#0baaff"
 col_leg[which(legende == sp_name)] = "#d50404"
 
-gg = ggplot(france) +
-  geom_sf(fill = "#f0f0f0", color = "#a0a0a0") +
-  geom_point(data = rbind(df_bary_all_sp, (df_bary_base %>% mutate(nom_esp_min = "Jardins")) ),
-             aes(x = longitude, y = latitude, color = nom_esp_min, frame = annee,
-                 text = paste0(nom_espece),
-                 customdata = paste0("../out/dashboard_espece_", nom_espece, ".html"))) +
-  geom_point(data = df_bary_one_sp,
-             aes(x = longitude, y=latitude, frame = annee,
-                 text = paste0(nom_espece),
-                 customdata = paste0("https://petite-loutre.com/blogs/tout-savoir-sur-les-loutres/photo-bebe-loutre")),
-             color = "#d50404") +
-  scale_color_manual(values = col_leg) +
-  ggtitle("Barycentre des jardins et des espèces") +
-  theme(title = element_text(size = 9)) +
-  theme_minimal()
-
-gg = ggplotly(gg, tooltip = "text") %>%
-  animation_opts(transition = 0, frame = 1000)
-
-gg <- htmlwidgets::onRender(gg, "
-     function(el, x) {
-     el.on('plotly_click', function(d) {
-     var url = d.points[0].customdata;
-     //url
-     window.open(url);
-     });
-     }
-     ")
-gg
-
+carte_bary_two_df(france = france,
+                  df_bary = rbind(df_bary_all_sp,
+                                  (df_bary_base %>%
+                                     mutate(nom_esp_min = "Jardins")) ),
+                  df_bary2 = df_bary_one_sp, col_man = col_leg)
 ```
 
 
 # [Test] Cartes par mois {orientation="columns"}
+
+<!-- ####################################################################### -->
 
 ## Column 1 {height="100%"}
 
@@ -482,19 +429,7 @@ col_txt_htm_y = rep("#2a7cf3", length(colnames(df_heatmap)))
 col_txt_htm_x[which(colnames(df_heatmap)==sp_name)] = "red"
 col_txt_htm_y[which(colnames(df_heatmap)==sp_name)] = "red"
 
-ggplot(reshape2::melt(df_heatmap), aes(x = Var1, y = Var2, fill = value)) +
-  geom_tile(color = "white") +
-  theme(axis.title.x = element_blank(),
-        axis.title.y = element_blank(),
-        title = element_text(size = 9),
-  #       axis.text.x = element_text(size = 8, angle = 90, vjust = 0.4, hjust = 1),
-  #       axis.text.y = element_text(size = 8)) +
-        axis.text.x = element_text(size = 8, angle = 90, vjust = 0.4, hjust = 1, colour = col_txt_htm_x),
-        axis.text.y = element_text(size = 8, color = col_txt_htm_y)) +
-    scale_fill_gradient2(low = "white", high = "#fc1d1a") +
-  # scale_fill_gradient2(low = "white", mid = "#ef5a58", high = "#005be0", midpoint = 0.5) +
-  coord_fixed() +
-  ggtitle("Matrice de co-occurence des espèces")
+heatmap_co_occ(df_heatmap = df_heatmap, color_x = col_txt_htm_x, color_y = col_txt_htm_y)
 ```
 
 Fréquence d'observation de l'<span style="color:#2a7cf3">espèce 2</span> au même moment que l'<span style="color:#0ba208">espèce 1</span> parmi toutes les observations de l'<span style="color:#0ba208">espèce 1</span>
@@ -503,24 +438,12 @@ Fréquence d'observation de l'<span style="color:#2a7cf3">espèce 2</span> au m�
 \frac{Observations_{\textcolor{#0ba208}{espece 1}\textcolor{#2a7cf3}{espece 2}}}{Observations_{\textcolor{#0ba208}{espece 1}}}
 \end{equation}
 
-## Tableau
+## Histogramme pour une espèce
 
 ```{r}
-
-df_tab %>%
-  ggplot() +
-   geom_bar(aes(x = reorder(nom, -corr), y = corr, fill = Corrélation), stat = "identity") +
-   scale_fill_manual(breaks = df_tab$Corrélation,
-                     values = df_tab$couleur) +
-   geom_hline(yintercept = 30, color = "red") +
-   scale_x_discrete(limits=rev) +
-   coord_flip() +
-   theme_minimal_vgrid() +
-   theme(axis.text.y = element_text(size = 7), 
-         title = element_text(size = 9)) +
-   ylab("% de co-occurence") +
-   xlab("Nom de l'espèce") +
-  ggtitle(paste0("% de co-occurence des autres espèces avec ", sp_name))
+histo_co_occ(df_histo = df_tab, breaks = df_tab$Corrélation,
+             values = df_tab$couleur,
+             title = paste0("% de co-occurence des autres espèces avec ", sp_name))
 ```
 
 <!-- ####################################################################### -->
@@ -543,7 +466,7 @@ plot_e2 <- df_coocc %>%
     e_charts(an_sem) %>%       # axe x pour echarts
     e_line(sum_ab_norm, symbol = "none")             # type de représentation pour l'axe y
 
-aes_echarts(plot_e = plot_e1, xlab = "Semaine de collection",
+aes_echarts(plot_e = plot_e1, xlab = "Semaine de participation",
             ylab = "Abondance",
             title = paste0("Abondance par semaine pour les 5 espèces co-occurrant le plus avec ", sp_name),
             line_color = sp_colors,
@@ -553,7 +476,7 @@ aes_echarts(plot_e = plot_e1, xlab = "Semaine de collection",
 ## Indice d'activité
 
 ```{r}
-aes_echarts(plot_e = plot_e2, xlab = "Semaine de collection",
+aes_echarts(plot_e = plot_e2, xlab = "Semaine de participation",
             ylab = "Indice norm",
             title = paste0("Indice norm par semaine pour les 5 espèces co-occurrant le plus avec ", sp_name),
             line_color = sp_colors,

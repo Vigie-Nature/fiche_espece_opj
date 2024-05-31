@@ -71,7 +71,7 @@ gg_histo <- function(df_histo, x = "date", y = "sum_ab",
 
 # Données sous forme de ligne
 gg_line <- function(df_line, x = "date", y = "n",
-                    xtxt = "Date de collection", ytxt = "Nombre de sessions",
+                    xtxt = "Date de participation", ytxt = "Nombre de sessions",
                     color = "#ff795c", dmin, dmax, title = ""){
   ggplot(df_line, aes(x = !!sym(x), y = !!sym(y))) +
     geom_line(color = color) +
@@ -136,69 +136,215 @@ aes_echarts <- function(plot_e, xlab, ylab, title, line_color, one_y = TRUE){
 }
 
 
-
-# Histogramme + line
-histo_line <- function(df_histo, x_h = "date", y_h = "sum_ab",
-                       df_ligne, x_l = "date", y_l = "n",
-                       div, xtxt = "Date de collection", ytxt = "Abondance",
-                       ytxtsec = "Nombre d'observations", title = ""){
+# Pic d'activité
+graph_pic <- function(df_pic, x = "annee", y = "sum_sp", ecart = "rmse",
+                      xlab = "Année", ylab = "Semaine de participation",
+                      title = "Semaine du pic d'activité et son écart-type chaque année"){
   
-  return(ggplot() +
-    geom_bar(data = df_histo, aes(x = !!sym(x_h), y = !!sym(y_h)),
-             color = "#8A173A", fill="#ab0739", stat="identity") +
-    geom_line(data = df_ligne, aes(x = !!sym(x_l), y = !!sym(y_l)*div, group = 1),
-              color = "#ff795c") +
+  gg = ggplot(df_pic, aes(x = !!sym(x), y = !!sym(y))) +
+    geom_hline(yintercept = 12, color = "#606060", linetype = "dashed") +
+    geom_hline(yintercept = 25, color = "#606060", linetype = "dashed") +
+    geom_hline(yintercept = 38, color = "#606060", linetype = "dashed") +
+    geom_hline(yintercept = 51, color = "#606060", linetype = "dashed") +
+    annotate("text", x = 2018.5, y = 5.5, label = "Hiver", color = "#234aa6") +
+    annotate("text", x = 2018.5, y = 18.5, label = "Printemps", color = "#5cda30") +
+    annotate("text", x = 2018.5, y = 31.5, label = "Été", color = "#da4c30") +
+    annotate("text", x = 2018.5, y = 44.5, label = "Automne", color = "#e7972a") +
+    geom_errorbar(aes(x=!!sym(x), ymin= !!sym(y)-!!sym(ecart), ymax=!!sym(y)+!!sym(ecart)),
+                  width=0.4, colour="#bb680e", alpha=0.9, linewidth=1.3) +
+    geom_point(colour = "#ffa600", size = 3) +
     theme_cowplot() +
-    scale_x_date(date_labels = "%Y-%b", date_breaks = "9 months") +
-    theme(axis.text.x = element_text(angle = 0, size = 8),
-          axis.title.y.left =  element_text(size = 12, color = "#ab0739"),
-          axis.title.y.right = element_text(size = 12, color = "#ff795c"),
-          plot.title = element_text(face = "plain", size = 12)) +
-    xlab(xtxt) +
-    ylab(ytxt) +
+    xlab(xlab) +
+    ylab(ylab) +
     ggtitle(title) +
-    scale_y_continuous(sec.axis = sec_axis(~./div, name = ytxtsec)))
+    theme(axis.text.x = element_text(size = 10),
+          axis.text.y = element_text(size = 10),
+          axis.title.x = element_text(size = 12),
+          axis.title.y = element_text(size = 12),
+          plot.title = element_text(face = "plain", size = 14)) +
+    ylim(1,52)+
+    coord_flip()
+  
+  return(gg)
 }
 
-
-
 #########################################
-#--------------- Cartes ----------------#
+#------------- Grégarité ---------------#
 #########################################
 
+# Abondance moyenne par espèce
+histo_ab_mean <- function(df_mg, x = "nom_espece", w = "m_abn", sd = "sd",
+                          color_txt = "black", xlab = "Espèce",
+                          ylab = "Nombre d'individus", order = "m_abn",
+                          title = "Moyenne de l'abondance pour chaque espèce"){
+  
+  gg = ggplot(df_mg, aes(x = reorder(!!sym(x), !!sym(order)))) +
+    geom_bar(aes(weight = !!sym(w)), fill = "#ffae57") +
+    geom_errorbar( aes(x=!!sym(x), ymin=!!sym(w)-!!sym(sd), ymax=!!sym(w)+!!sym(sd)),
+                   width=0.4, colour="#bb680e", alpha=0.9, size=1.3) +
+    coord_flip() +
+    xlab(xlab) +
+    ylab(ylab) +
+    ggtitle(title) +
+    theme(title = element_text(size = 9),
+          axis.text.y = element_text(color = color_txt))
+  
+  return(gg)
+}
 
-# Carte animée avec plotly
-gg_carte = function(an, df_sp, france){
-  df_mois = data.frame(mois = c("01", "02", "03", "04", "05", "06",
-                                "07", "08", "09", "10", "11", "12"),
-                       jardin_id = 0,
-                       latitude = NA,
-                       longitude = NA,
-                       sum_ab = 0)
-  df_migration = df_sp %>%
-    filter(annee == an) %>%
-    mutate(mois = strftime(date_collection, "%m")) %>%
-    group_by(mois, jardin_id, latitude, longitude) %>%
-    summarise(sum_ab = sum(abondance)) %>%
-    filter(sum_ab != 0) %>%
-    dplyr::union(df_mois)
+# Classes d'abondance pour l'espèce
+histo_grega <- function(df_grega, x = "class_idv", y = "freq_prc",
+                        xlab = "Nombre d'individus observés simultanément",
+                        ylab = "% d'observations",
+                        title = "Distribution de la grégarité de l'espèce",
+                        limits = c("1", "2 à 4", "5 à 9", "10 et +")){
+  return(ggplot(df_grega) +
+    geom_bar(aes(x = !!sym(x), y = !!sym(y)),
+             stat = "identity",
+             fill = "#8cb6ec") +
+    scale_x_discrete(limits=limits) +
+    theme_cowplot() + 
+    labs(x = xlab,
+         y = ylab) +
+    scale_y_continuous(labels = scales::percent_format(accuracy = 1)) +
+    ggtitle(title) +
+    theme(plot.title = element_text(face = "plain", size = 15),
+          axis.text.x = element_text(size = 12),
+          axis.text.y = element_text(size = 12),
+          axis.title.x = element_text(size = 14),
+          axis.title.y = element_text(size = 14)))
+}
+
+# Indice de grégarité par espèce
+histo_indice_greg <- function(df_greg_all, x = "nom_espece", order = "classif",
+                              fill = "ab_grega", w = "prop_grega",
+                              mean = "classif", sqrt = "sqrt_n",
+                              lab_fill = "Grégarité",
+                              xlab = "Espèce", ylab = "Proportion",
+                              title = paste0("Proportion des observations 1 individu ",
+                                             "/ plusieurs individus \npour chaque espèce"),
+                              color_txt = "black"){
   
-  if (an == as.numeric(strftime(Sys.Date(), "%Y")) ){
-    df_migration = df_migration %>%
-      filter(mois <= strftime(Sys.Date(), "%m"))
-  }
-  
-  gg =ggplot(france) +
+  return(ggplot(df_greg_all, aes(x = reorder(!!sym(x), !!sym(order)), fill = !!sym(fill))) +
+    geom_bar(aes(weight = !!sym(w))) +
+    geom_errorbar(aes(x = reorder(!!sym(x), !!sym(order)),
+                      ymin = !!sym(mean) - !!sym(sqrt),
+                      ymax = !!sym(mean) + !!sym(sqrt)),
+                  width=.4, color = "#404040") +
+    scale_y_continuous(labels = scales::percent_format(accuracy = 1)) + 
+    coord_flip() +
+    labs(fill = lab_fill) +
+    xlab(xlab) +
+    ylab(ylab) +
+    ggtitle(title) +
+    theme(title = element_text(size = 9),
+          axis.text.y = element_text(color = color_txt)))
+}
+
+#########################################
+#-------------- Jardins ----------------#
+#########################################
+
+# Hitogrammes des jardins
+histo_jardin <- function(df_jard, x, y = "nobs", fill = "type",
+                         limits_x, val_fill, xlab, ylab = "% des observations",
+                         title=paste0("% des observations dans une catégorie ",
+                                      "pour l'espèce et \nsur toutes les observations")){
+  return(df_jard %>%
+    ggplot() +
+    geom_bar(aes(x = !!sym(x), y = !!sym(y),
+                 fill = !!sym(fill)),
+             stat = 'identity', position = "dodge") +
+    scale_x_discrete(limits=limits_x) +
+    scale_fill_manual(values = val_fill)+
+    scale_y_continuous(labels = scales::percent_format(accuracy = 0.1)) +
+    xlab(xlab) +
+    ylab(ylab) +
+    ggtitle(title) +
+    theme_cowplot() +
+    theme(plot.title = element_text(face = "plain", size = 11)))
+}
+
+# Position des jardins
+carte_point_jardin <- function(france, df_jp, x = "longitude", y = "latitude",
+                               color = "Présence", alpha = "Présence", title){
+  ggplot(france) + 
+    geom_sf(fill = "#f4f4f4") +
+    geom_point(data = df_jp, aes(x = !!sym(x), y = !!sym(y),
+                                 color=!!sym(color), alpha = !!sym(alpha))) +
+    theme_light() +
+    ggtitle(title) +
+    theme(title = element_text(size = 9)) +
+    scale_alpha_manual(values = c(0.75, 1)) +
+    guides(alpha = "none")
+}
+
+# Barycentre
+carte_bary_one_df <- function(france, df_bary, x = "longitude", y = "latitude",
+                              color = "nom_espece", frame ="annee", col_val,
+                              txt = "nom_espece",
+                              title = "Barycentre des jardins et de l'espèce"){
+  gg = ggplot(france) +
     geom_sf(fill = "#f0f0f0", color = "#a0a0a0") +
-    geom_point(data = df_migration, aes(x = longitude, y=latitude, frame = mois), color = "red") +
+    geom_point(data = df_bary,
+               aes(x = !!sym(x), y = !!sym(y), color = !!sym(color),
+                   frame = !!sym(frame), text = !!sym(txt))) +
+    ggtitle(title) +
+    theme(title = element_text(size = 9)) +
+    scale_color_manual(values = col_val) +
+    labs(color = "Barycentre") +
     theme_minimal()
   
   return(gg %>%
-           ggplotly()  %>%
-           animation_opts(transition = 0, frame = 1000))
+    ggplotly(tooltip = "text")  %>%
+    layout(xaxis = list(autorange = TRUE), yaxis = list(autorange = TRUE)) %>%
+    animation_opts(transition = 0, frame = 1000))
 }
 
-# Carte pour un mois d'une année (pour création gif)
+# Barycentre (toutes les espèces)
+carte_bary_two_df <- function(france, df_bary, df_bary2, x = "longitude", y = "latitude",
+                              color = "nom_esp_min", frame = "annee", txt = "nom_espece",
+                              customdata ="nom_espece", col_man,
+                              title = "Barycentre des jardins et des espèces"){
+  
+  gg = ggplot(france) +
+    geom_sf(fill = "#f0f0f0", color = "#a0a0a0") +
+    geom_point(data = df_bary,
+               aes(x = !!sym(x), y = !!sym(y), color = !!sym(color),
+                   frame = !!sym(frame), text = !!sym(txt),
+                   customdata = paste0("../out/dashboard_espece_",
+                                       !!sym(customdata), ".html"))) +
+    geom_point(data = df_bary2,
+               aes(x = !!sym(x), y=!!sym(y), frame = !!(sym(frame)),
+                   text = !!sym(txt)),
+               color = "#d50404") +
+    scale_color_manual(values = col_man) +
+    ggtitle(title) +
+    theme(title = element_text(size = 9)) +
+    labs(color = "Barycentre") +
+    theme_minimal()
+  
+  gg = ggplotly(gg, tooltip = "text") %>%
+    layout(xaxis = list(autorange = TRUE), yaxis = list(autorange = TRUE)) %>%
+    animation_opts(transition = 0, frame = 1000)
+  
+  gg <- htmlwidgets::onRender(gg, "
+     function(el, x) {
+     el.on('plotly_click', function(d) {
+     var url = d.points[0].customdata;
+     //url
+     window.open(url);
+     });
+     }
+     ")
+  return(gg)
+}
+
+#########################################
+#------- [Test] Cartes par mois --------#
+#########################################
+
+# Carte pour un mois d'une année
 gg_carte_mois = function(month, df_sp, france){
   df_mois = data.frame(mois = month,
                        jardin_id = 0,
@@ -220,5 +366,48 @@ gg_carte_mois = function(month, df_sp, france){
     ggtitle(month)
   
   return(gg)
+}
+
+#########################################
+#------- [Test] Cartes par mois --------#
+#########################################
+
+# Heatmap
+heatmap_co_occ <- function(df_heatmap, x = "Var1", y = "Var2", fill = "value",
+                           color_x, color_y,
+                           title = "Matrice de co-occurence des espèces"){
+  return(ggplot(reshape2::melt(df_heatmap),
+         aes(x = !!sym(x), y = !!sym(y), fill = !!sym(fill))) +
+    geom_tile(color = "white") +
+    theme(axis.title.x = element_blank(),
+          axis.title.y = element_blank(),
+          title = element_text(size = 9),
+          axis.text.x = element_text(size = 8, angle = 90, vjust = 0.4, hjust = 1, colour = color_x),
+          axis.text.y = element_text(size = 8, color = color_y)) +
+    scale_fill_gradient2(low = "white", high = "#fc1d1a") +
+    coord_fixed() +
+    ggtitle(title))
+}
+
+# Histogramme pour une espèce
+histo_co_occ <- function(df_histo, x = "nom", y = "corr", order = "corr",
+                         fill = "Corrélation", breaks, values,
+                         xlab = "Nom de l'espèce", ylab = "% de co-occurence",
+                         title = "% de co-occurence des autres espèces"){
+  return(df_histo %>%
+    ggplot() +
+    geom_bar(aes(x = reorder(!!sym(x), -!!sym(order)), y = !!sym(y),
+                 fill = !!sym(fill)), stat = "identity") +
+    scale_fill_manual(breaks = breaks,
+                      values = values) +
+    geom_hline(yintercept = 30, color = "red") +
+    scale_x_discrete(limits=rev) +
+    coord_flip() +
+    theme_minimal_vgrid() +
+    theme(axis.text.y = element_text(size = 7), 
+          title = element_text(size = 9)) +
+    ylab(ylab) +
+    xlab(xlab) +
+    ggtitle(title) )
 }
 

@@ -54,6 +54,9 @@ df_sp = df_all_sp %>%
 df_sp_ab = df_sp %>%
   filter(abondance != 0)
 
+# Carte de france en objet sf
+france <- read_sf(paste0("carte/contour-des-departements.geojson"))
+
 #########################################
 #-------- Calcul d'indicateurs ---------#
 #########################################
@@ -209,6 +212,15 @@ df_date_wm_sqrt = df_sp %>%
 #------------- Grégarité ---------------#
 #########################################
 
+# Moyenne d'abondance
+df_moyenne_greg = df_all_sp %>%
+  filter(abondance!= 0) %>%
+  group_by(nom_espece) %>%
+  summarise(m_abn = mean(abondance), n = n()) %>%
+  mutate(sd = 1.96*sqrt(m_abn/n)) %>%
+  arrange(desc(m_abn)) %>%
+  as.data.frame()
+
 # Espèce seule
 df_gregarite = data.frame(nb_idv = as.numeric(names(summary(as.factor(df_sp_ab$abondance)))),
                           frequence = summary(as.factor(df_sp_ab$abondance))) %>%
@@ -233,15 +245,6 @@ df_gregarite_all = df_all_sp %>%
   mutate(sqrt_n = sqrt(prod(prop_grega)/sum_n),
          classif = prop_grega[2]) %>%
   ungroup()
-
-# Moyenne d'abondance
-df_moyenne_greg = df_all_sp %>%
-  filter(abondance!= 0) %>%
-  group_by(nom_espece) %>%
-  summarise(m_abn = mean(abondance), n = n()) %>%
-  mutate(sd = 1.96*sqrt(m_abn/n)) %>%
-  arrange(desc(m_abn)) %>%
-  as.data.frame()
 
 #########################################
 #--------------- Jardins ---------------#
@@ -280,7 +283,8 @@ df_jardin_point = df_sp %>%
   group_by(jardin_id, latitude, longitude) %>%
   summarise(sum_ab = sum(abondance)) %>%
   filter(!is.na(latitude)) %>%
-  mutate(Présence = if_else(sum_ab == 0, "Non vu", "Vu")) %>%
+  mutate(Présence = if_else(sum_ab == 0, "Espèce non observée", "Espèce observée"),
+         alpha = if_else(sum_ab == 0, 0.7, 1)) %>%
   arrange(Présence)
 
 # Fonction à appliquer aux df pour les barycentres
