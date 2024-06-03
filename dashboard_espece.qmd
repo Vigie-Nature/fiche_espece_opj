@@ -98,7 +98,6 @@ La figure représente pour chaque espèce la proportion de l'abondance totale de
 
 ```{r}
 gg_histo_plotly(df_hp = df_repartition, limits = df_repartition$nom_espece,
-                breaks = df_repartition$nom_espece,
                 couleur = df_repartition$couleur)
 ```
 
