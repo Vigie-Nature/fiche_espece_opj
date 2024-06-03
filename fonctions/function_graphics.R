@@ -19,30 +19,56 @@
 #------------ Observations -------------#
 #########################################
 
+#' Histogramme de proportion des abondances d'espèces
+#' 
+#' @param df_hp A dataframe
+#' @param x A character (column's dataframe)
+#' @param y A character (column's dataframe)
+#' @param fill A character (column's dataframe)
+#' @param title A character 
+#' @param ytxt A character 
+#' @param limits A character vector
+#' @param breaks A character vector
+#' @param couleur A character vector 
+#' @returns A ggplotly object.
+#' @examples
+#' gg_histo_plotly(df_hp = data.frame(nom = c("A", "B", "C"),
+#'                                    value = c(0.23, 0.11, 0.219)),
+#'                 x = "nom", y = "value", fill = "nom", title = "Proportions",
+#'                 limits = c("B", "C", "A"), couleur = c("red", "grey", "grey"))
 gg_histo_plotly <- function(df_hp, x = "nom_espece", y = "rel_ab",
                             fill = "nom_espece", 
                             title = "Proportion d'abondance de chaque espèce parmi toutes les observations", 
                             ytxt = "% d'abondance",
-                            limits, breaks, couleur){
+                            limits, couleur){
   
   gg = df_hp %>%
     ggplot() +
+    # On effectue un mapping selon les colonnes x et y, et on colore les
+    # histogrammes selon la colonne fill
     geom_bar(mapping = aes(x = !!sym(x), y = !!sym(y), fill = !!sym(fill),
-                           text = paste0(nom_espece, " : ",
+                           # On ajoute un argument 'text" pour ggplotly
+                           # ("x" : "y" [au format % avec une précision au centième 12.9062 -> 12.91])
+                           text = paste0(!!sym(x), " : ",
                                          scales::percent(!!sym(y), accuracy = 0.01))),
              stat = "identity") +
-    scale_x_discrete(limits=limits) +
+    scale_x_discrete(limits=limits) +       # Fonction pour ordonner l'axe x
     ylab(ytxt) +
     ggtitle(title) +
     theme_cowplot() +
-    theme(axis.title.y = element_blank(),
-          title = element_text(size = 9),
-          legend.position = "none" ) +
-    scale_fill_manual(breaks = breaks,
+    theme(axis.title.y = element_blank(),   # Suppression du nom de l'axe y
+          title = element_text(size = 9),   # Titre en taille 9
+          legend.position = "none" ) +      # Suppression de la légende
+    # Fonction pour colorer les histogrammes selon des valeurs choisies (dans le même ordre que l'axe x)
+    scale_fill_manual(breaks = limits,
                       values = couleur) +
+    # Mise de l'axe y au format % en précision 1 (21.2% -> 21%)
     scale_y_continuous(labels = scales::percent_format(accuracy = 1)) + 
+    # Inversion des axes x et y pour que les histogrammes soient horizontaux
     coord_flip()
   
+  # On utilise ggplotly avec l'argument "tooltip" pour que le "text" s'affiche
+  # quand on passe la souris sur les histogrammes
   return(ggplotly(gg, tooltip = "text"))
 }
 
@@ -50,15 +76,20 @@ gg_histo_plotly <- function(df_hp, x = "nom_espece", y = "rel_ab",
 #-------- Variations annuelles ---------#
 #########################################
 
-# Histogramme
+# Histogramme d'abondance
 gg_histo <- function(df_histo, x = "date", y = "sum_ab",
                      ytxt = "Abondance totale", dmin, dmax, title = ""){
   
   return(ggplot() +
+           # Histogramme avec les axes x et y définis en arguments 
+           # !!! Axe x doit être une date
            geom_bar(data = df_histo, aes(x = !!sym(x), y = !!sym(y)),
+                    # Couleur et remplissage définis
                     color = "#8A173A", fill="#ab0739", stat="identity") +
            theme_cowplot() +
+           # Axe x sous format date "ANNEE-MOIS" avec un intervalle de 9 mois entre les labels
            scale_x_date(date_labels = "%Y-%b", date_breaks = "9 months",
+                        # On définit les limites de l'axe x avec les arguments dmin/dmax
                         limits = c(dmin, dmax)) +
            theme(axis.title.x = element_blank(),
                  axis.text.x = element_text(angle = 0, size = 8),
@@ -69,13 +100,14 @@ gg_histo <- function(df_histo, x = "date", y = "sum_ab",
            ylab(ytxt) )
 }
 
-# Données sous forme de ligne
+# Graphique en courbe
 gg_line <- function(df_line, x = "date", y = "n",
                     xtxt = "Date de participation", ytxt = "Nombre de sessions",
                     color = "#ff795c", dmin, dmax, title = ""){
   ggplot(df_line, aes(x = !!sym(x), y = !!sym(y))) +
     geom_line(color = color) +
     theme_cowplot() +
+    # Axe x sous format date "ANNEE-MOIS" avec un intervalle de 9 mois entre les labels
     scale_x_date(date_labels = "%Y-%b", date_breaks = "9 months",
                  limits = c(dmin, dmax)) +
     theme(axis.title.x = element_text(size = 10),
