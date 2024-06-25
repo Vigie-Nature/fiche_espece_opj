@@ -83,8 +83,10 @@ nb_max_ab = df_sp %>%
 df_dep = df_sp %>% 
   group_by(dept_code) %>%
   summarise(n = sum(abondance),
+            nb_participation = n_distinct(participation_id),
             nb_jard = n_distinct(jardin_id)) %>%
   mutate(ab_moy = n/nb_jard,
+         ab_rel = n/nb_participation,
          cl_ab = case_when(n == 0 ~ "0",
                            n > 0 & n <= 50 ~ "1-50",
                            n > 50 & n <= 100 ~ "51-100",
@@ -95,12 +97,19 @@ df_dep = df_sp %>%
                             ab_moy > 0 & ab_moy <= 2 ~ "1-2",
                             ab_moy > 2 & ab_moy <= 5 ~ "3-5",
                             ab_moy > 5 & ab_moy <= 10 ~ "6-10",
-                            ab_moy > 10 ~ "+ de 10")) 
+                            ab_moy > 10 ~ "+ de 10"),
+         cl_qual = case_when(ab_rel == 0 ~ "Pas de détection",
+                             ab_rel > 0 & ab_rel <= 0.2 ~ "Peu abondant",
+                             ab_rel > 0.2 & ab_rel <= 0.4 ~ "Abondant",
+                             ab_rel > 0.4 & ab_rel <= 0.6 ~ "Très abondant",
+                             ab_rel > 0.6 ~ "Extrêmement abondant")) 
 
 df_dep = df_dep[c(1:6, 29:30, 7:28, 31:96),]
 
 cat_carte_all = c("0", "1-50", "51-100", "101-300", "301-500", "+ de 500")
 cat_carte_all_moy = c("0", "1-2", "3-5", "6-10", "+ de 10")
+cat_carte_tendance_moy = c("Pas de détection", "Peu abondant", "Abondant",
+                           "Très abondant", "Extrêmement abondant")
 couleurs = c("#7f7f7f", "#ffef6c", "#f7b905", "#ff7400", "#ff0000", "#950000")
 
 #########################################
@@ -120,7 +129,8 @@ df_repartition = df_all_sp %>%
   summarise(sum_ab = sum(abondance),
             rel_ab = sum(abondance)/sum(df_all_sp$abondance)) %>%
   arrange(sum_ab) %>%
-  mutate(couleur = if_else(nom_espece == sp_name, color_flag, "grey"))
+  mutate(couleur = c(rep("#3138cc", 10), rep("#6893fc", 9), rep("#90d3ff", 9)),
+         couleur = if_else(nom_espece == sp_name, color_flag, couleur))
 
 #########################################
 #-------- Variations annuelles ---------#
@@ -174,12 +184,17 @@ nb_part_par_sem = df_all_sp %>%
 # Abondance relative
 df_ab_rel <- df_sp %>%
   mutate(num_semaine = as.integer(num_semaine)) %>%
-  group_by(annee, num_semaine) %>%
+  group_by(annee, num_semaine, date_collection) %>%
   summarise(sum_ab = sum(abondance)) %>%        # Somme des abondances
   left_join(nb_part_par_sem, by = c("annee" = "annee",
                                     "num_semaine" = "num_semaine")) %>%
   mutate(sum_ab_rel = sum_ab/nb_part) %>%  # Division par le nombre de participations
-  arrange(num_semaine)
+  arrange(num_semaine) %>%
+  group_by(annee, num_semaine) %>%
+  mutate(col_sup = if_else(n() == 2 & sum_ab == 0, 1, 0)) %>%
+  filter(col_sup == 0) %>%
+  select(!col_sup) %>%
+  ungroup()
 
 # Phénologie
 df_freq_rel <- df_sp_ab %>%
