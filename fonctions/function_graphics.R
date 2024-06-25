@@ -30,7 +30,9 @@
 #' @param limits A character vector
 #' @param breaks A character vector
 #' @param couleur A character vector 
+#' 
 #' @returns A ggplotly object.
+#' 
 #' @examples
 #' gg_histo_plotly(df_hp = data.frame(nom = c("A", "B", "C"),
 #'                                    value = c(0.23, 0.11, 0.219)),
@@ -69,7 +71,7 @@ gg_histo_plotly <- function(df_hp, x = "nom_espece", y = "rel_ab",
   
   # On utilise ggplotly avec l'argument "tooltip" pour que le "text" s'affiche
   # quand on passe la souris sur les histogrammes
-  return(ggplotly(gg, tooltip = "text"))
+  return(ggplotly(gg, tooltip = "text") %>% config(displayModeBar = FALSE))
 }
 
 #########################################
@@ -77,8 +79,31 @@ gg_histo_plotly <- function(df_hp, x = "nom_espece", y = "rel_ab",
 #########################################
 
 # Histogramme d'abondance
+
+#' Title
+#'
+#' @param df_histo A dataframe
+#' @param x A character (column's dataframe)
+#' @param y A character (column's dataframe)
+#' @param ytxt A character
+#' @param dmin A date
+#' @param dmax A date
+#' @param title A character
+#'
+#' @return A ggplot object
+#'
+#' @examples
+#' data("economics")
+#' gg_histo(df_histo = economics, x = "date", y = "unemploy",
+#'          ytxt = "Taux de chômage",
+#'          dmin = as.Date("2000-04-01"),
+#'          dmax = as.Date("2009-04-01"))
 gg_histo <- function(df_histo, x = "date", y = "sum_ab",
                      ytxt = "Abondance totale", dmin, dmax, title = ""){
+  
+  # On fait en sorte qu'on ne voit que les labels soient centrés sur le 1er juillet
+  year_mid <- floor_date(as.data.frame(df_histo)[,x], "year") + months(6)
+  mid_year_dates <- sort(unique(year_mid))
   
   return(ggplot() +
            # Histogramme avec les axes x et y définis en arguments 
@@ -87,8 +112,8 @@ gg_histo <- function(df_histo, x = "date", y = "sum_ab",
                     # Couleur et remplissage définis
                     color = "#8A173A", fill="#ab0739", stat="identity") +
            theme_cowplot() +
-           # Axe x sous format date "ANNEE-MOIS" avec un intervalle de 9 mois entre les labels
-           scale_x_date(date_labels = "%Y-%b", date_breaks = "9 months",
+           # Axe x sous format date "ANNEE-MOIS" avec un intervalle de 1 an
+           scale_x_date(breaks = mid_year_dates, date_labels = "%Y",
                         # On définit les limites de l'axe x avec les arguments dmin/dmax
                         limits = c(dmin, dmax)) +
            theme(axis.title.x = element_blank(),
@@ -96,19 +121,28 @@ gg_histo <- function(df_histo, x = "date", y = "sum_ab",
                  axis.title.y =  element_text(size = 11, color = "#ab0739"),
                  axis.text.y = element_text(size = 8),
                  plot.title = element_text(face = "plain", size = 9)) +
+           # Lignes pointillées pour séparer les années
+           geom_vline(xintercept = mid_year_dates + months(6),
+                      color = "#606060", linetype = "dashed") +
            ggtitle(title) +
            ylab(ytxt) )
+  
 }
 
 # Graphique en courbe
 gg_line <- function(df_line, x = "date", y = "n",
                     xtxt = "Date de participation", ytxt = "Nombre de sessions",
                     color = "#ff795c", dmin, dmax, title = ""){
+  
+  # On fait en sorte qu'on ne voit que les labels soient centrés sur le 1er juillet
+  year_mid <- floor_date(as.data.frame(df_line)[,x], "year") + months(6)
+  mid_year_dates <- sort(unique(year_mid))
+  
   ggplot(df_line, aes(x = !!sym(x), y = !!sym(y))) +
     geom_line(color = color) +
     theme_cowplot() +
     # Axe x sous format date "ANNEE-MOIS" avec un intervalle de 9 mois entre les labels
-    scale_x_date(date_labels = "%Y-%b", date_breaks = "9 months",
+    scale_x_date(breaks = mid_year_dates, date_labels = "%Y",
                  limits = c(dmin, dmax)) +
     theme(axis.title.x = element_text(size = 10),
           axis.text.x = element_text(angle = 0, size = 8),
@@ -116,6 +150,8 @@ gg_line <- function(df_line, x = "date", y = "n",
           axis.text.y = element_text(size = 8),
           plot.title = element_text(face = "plain", size = 9)) +
     ggtitle(title) +
+    geom_vline(xintercept = mid_year_dates + months(6),
+               color = "#606060", linetype = "dashed") +
     xlab(xtxt) +
     ylab(ytxt)
 }
@@ -161,7 +197,33 @@ aes_echarts <- function(plot_e, xlab, ylab, title, line_color, one_y = TRUE){
   
   if (one_y) {
     plot_e <- plot_e %>%
-      e_x_axis(max = 52) 
+      e_x_axis(max = 52) %>%
+      e_mark_line(emphasis = list(disabled = TRUE), symbol = "none", lineStyle = list(color = "grey"),
+                  data = list(xAxis = 12), title = "") %>%
+      e_mark_line(data = list(xAxis = 25), title = "") %>%
+      e_mark_line(data = list(xAxis = 38), title = "") %>%
+      e_mark_line(data = list(xAxis = 51), title = "") %>%
+      e_graphic_g(
+        elements = list(
+          # list(type = "text", left = 'center', top = 20,
+          #   style = list(text = 'Texte centré en haut',
+          #     font = 'bold 14px sans-serif', fill = 'black')),
+          list(type = "text", left = '17%', top = '14%',
+               style = list(text = 'Hiver',
+                            font = '14px sans-serif',
+                            fill = 'black')),
+          list(type = "text", left = '35%', top = '14%',
+               style = list(text = 'Printemps',
+                            font = '14px sans-serif',
+                            fill = 'black')),
+          list(type = "text", left = '57%', top = '14%',
+               style = list(text = 'Été',
+                            font = '14px sans-serif',
+                            fill = 'black')),
+          list(type = "text", left = '75.5%', top = '14%',
+               style = list(text = 'Automne',
+                            font = '14px sans-serif',
+                            fill = 'black', textAlign = 'center'))))
   }
   
   return(plot_e)
