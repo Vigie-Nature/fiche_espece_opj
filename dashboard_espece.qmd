@@ -504,6 +504,30 @@ Abondance totale : nombre total d'individus observés par semaine
 Indice d'activité : observations d'une espèce par semaine / observations totale de l'espèce depuis 2019
 
 
+# Nouveaux tests
+
+```{r}
+df_surface = df_sp %>%
+  filter(abondance != 0) %>%
+  group_by(surface) %>%
+  summarise(ab_tot = n()) %>%
+  mutate(ab_prc = ab_tot/sum(ab_tot),
+         esp = "Espèce")
+
+df_surface_all = df_sp %>%
+  group_by(surface) %>%
+  summarise(ab_tot = n()) %>%
+  mutate(ab_prc = ab_tot/sum(ab_tot),
+         esp = "All") %>%
+  rbind(df_surface)
+```
+
+```{r}
+df_surface_all %>%
+  ggplot(aes(x = surface, y = ab_prc, fill = esp)) +
+  geom_bar(stat = "identity", position = "dodge") +
+  scale_x_discrete(limits = c("0-20 m²", "20-100 m²", "100-200 m²", "200-400 m²", "400-600 m²", "600-1000 m²", "1000-1500 m²", "1500-2000 m²", "2000-2500 m²", "2500-3000 m²", "3000-4000 m²", "4000-5000 m²", "+ de 5000 m²"))
+```
 
 
 
