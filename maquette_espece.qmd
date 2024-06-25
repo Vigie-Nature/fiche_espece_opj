@@ -1,0 +1,529 @@
+---
+params:
+  sp_name: "Myrtil"
+title: "Maquette espèce"
+format:
+  dashboard:
+    scrolling: false
+    nav-buttons:
+      - icon: gitlab
+        href: https://outils-patrinat.mnhn.fr/gitlab/mpretet/fiche_espece
+      - icon: arrow-bar-left
+        href: ../programs/accueil.html
+    embed-resources: true
+execute:
+  echo: false
+  message : false
+  warning : false
+  error : false
+---
+
+```{r}
+# Variables constantes
+sp_name = params$sp_name
+source("fonctions/var.R")
+```
+
+<!-- ####################################################################### -->
+
+# `{r} params$sp_name` {orientation="columns"}
+
+```{r}
+# Librairies
+source("fonctions/library.R")
+```
+
+```{r}
+# Fonctions et environnement
+readRenviron(".env")
+# source("fonctions/carte.R")
+source("fonctions/function_graphics.R")
+source("fonctions/function_import_from_mosaic.R")
+# Création des data frame
+source("fonctions/create_df_all_sp.R")
+source("fonctions/create_df_one_sp.R")
+```
+
+## Images
+
+### Photo {height="70%"}
+
+```{r}
+file_img = paste0("data/photos/", sp_name, ".jpg")
+image_read(file_img)
+```
+
+### Logo  {height="30%"}
+
+```{r}
+file_img = paste0("data/img/logo_obj_ope_papillons.png")
+image_read(file_img)
+```
+
+## Texte
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
+<!-- ####################################################################### -->
+
+# Chiffres clés {orientation="columns"}
+
+## Texte {width="40%"}
+
+### Infobulle
+
+::: {.valuebox icon="eye" color="#ced600"}
+Nombre de fois où au moins un individu a été observé :
+
+`{r} paste0(label_number(accuracy = 10)(nb_obs_idv), " sur ", label_number(accuracy = 10)(nrow(df_sp)), " observations")`
+:::
+
+### Infobulle
+
+::: {.valuebox icon=none color="#5bbdd6"}
+Les participants ont compté `{r} paste0(label_number(accuracy = 10)(nb_idv_cpt), " ", sp_name, " sur les ", label_number(accuracy = 10)(sum(df_all_sp$abondance)), " papillons au total.")`
+:::
+
+### Explication {width="60%"}
+
+Classement : `{r} paste0(which(rev(df_repartition$nom_espece) == sp_name), "/", length(df_repartition$nom_espece))`
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
+## Graphiques {height="60%"}
+
+```{r}
+gg_histo_plotly(df_hp = df_repartition, limits = df_repartition$nom_espece,
+                couleur = df_repartition$couleur)
+```
+
+# Cartographie {orientation="columns"}
+
+## Textes {width="30%"}
+
+### Texte 1
+
+::: {.callout-note icon=false}
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+:::
+
+### Texte 2
+
+::: {.callout-note icon=false}
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+:::
+
+## Graphiques {width="70%"}
+
+:::panel-tabset
+
+### Jardins
+
+```{r}
+carte_point_jardin(france = france, df_jp = df_jardin_point,
+                   title = paste0("Positions des jardins ayant participé entre ",
+                                  strftime(min(df_sp$date_collection), "%Y"), " et ",
+                                  strftime(max(df_sp$date_collection), "%Y")))
+```
+
+### Abondance
+
+```{r}
+print(carte_ab(shape_map = france, fill_map = df_dep$cl_qual, fill_color = couleurs,
+         fill_cat = cat_carte_tendance_moy, fill_title = "Abondance relative entre 2019 et 2024",
+         map_title = paste0("Carte de distribution de l'abondance relative de l'espèce ", sp_name)))
+
+```
+
+:::
+
+# Phénologie inter-annuelle
+
+## Abondance relative
+
+```{r}
+#| title: "Abondance de l'espèce et pression d'échantillonnage"
+
+datemin = min(as.Date(df_sp$date_collection)) - 7
+datemax = max(as.Date(df_sp$date_collection)) + 7
+
+gg1 <- gg_histo(df_histo = df_ab_rel %>% mutate(date = as.Date(date_collection)) ,
+                y = "sum_ab_rel", dmin = datemin, dmax = datemax,
+                ytxt = "Abondance relative", title = "Abondance relative par semaine")
+
+gg2 <- gg_line(df_line = df_nb_obs_date, dmin = datemin, dmax = datemax, ytxt = "Sessions",
+               title = "Nombre de sessions d'observation par semaine")
+
+grid.arrange(gg1, gg2, ncol = 1, heights=c(2, 1))
+
+```
+
+## Texte explicatif
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
+# Phénologie intra-annuelle {orientation="columns"}
+
+## Indicateurs relatifs {width="70%"}
+
+:::panel-tabset
+### Abondance relative
+```{r}
+colfunc <- colorRampPalette(c("#a4dbff", "#0b6cab"))
+vec_col = c(colfunc(length(unique(df_sp$annee))-1), "#f40b0b")
+```
+
+
+```{r}
+aes_echarts(plot_e = df_ab_rel %>%
+              select(!date_collection) %>%
+              group_by(annee) %>%
+              e_charts(num_semaine) %>%
+              e_line(sum_ab_rel, symbol='none'),
+            xlab = "Semaine de participation",
+            ylab = "Indice d'abondance",
+            title = "Abondance relative par participation chaque semaine",
+            line_color = vec_col)
+```
+
+### Phénologie
+```{r}
+aes_echarts(plot_e = df_freq_rel %>%
+              e_charts(num_semaine) %>%
+              e_line(freq_rel, symbol='none'),
+            xlab = "Semaine de participation",
+            ylab = "Fréquence relative",
+            title = "Nombre d'observations par jardin chaque semaine selon les années",
+            line_color = vec_col)
+```
+
+:::
+
+## Texte {width="30%"}
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
+Conseils sur période d'observation
+
+<!-- ####################################################################### -->
+
+# Grégarité {orientation="columns"}
+
+## Graphiques {width="60%"}
+
+### Classes d'abondance pour l'espèce
+```{r}
+histo_grega(df_grega = df_gregarite,
+            title = paste0("Distribution de la grégarité de l'espèce ", sp_name))
+```
+
+### Indice de grégarité par espèce
+```{r}
+names_grega = unique(df_gregarite_all %>% arrange(classif) %>% select(nom_espece) %>% as.vector())
+color_txt = rep("black", length(names_grega$nom_espece))
+position_sp = which(unique(names_grega$nom_espece) == sp_name)
+color_txt[position_sp] = "red"
+
+histo_indice_greg(df_greg_all = df_gregarite_all, color_txt = color_txt)
+```
+
+
+## Texte {width="40%"}
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
+::: {.callout-note icon=false}
+
+## Classes d'abondance pour l'espèce
+On calcule la proportion d'individus pour différentes catégorie de nombres d'individus.
+:::
+
+::: {.callout-note icon=false}
+
+## Indice de grégarité par espèce
+On calcule pour chaque espèce la proportion d'observations où on voit un seul individu et celle où on voit plus d'un individu ainsi que l'écart-type
+:::
+
+<!-- ####################################################################### -->
+
+# Jardins {orientation="columns"}
+
+## Types de jardin
+
+### Histogramme
+
+::: panel-tabset
+```{r}
+#| results: asis
+#| fig-width: 6
+#| fig-height: 4
+for(i in 1:3) {
+  cat(sprintf(paste0("\n\n#### ",lst_param[[i]][[4]],"\n\n")))
+  
+  df_tot = df_sp %>%
+    group_by(!!sym(lst_param[[i]][[1]])) %>%
+    summarise(nobs = n()) %>%
+    as.data.frame() %>%
+    mutate(nobs = nobs/sum(nobs),
+           type = "Total")
+  
+  df_obs = df_sp %>%
+    filter(abondance != 0) %>%
+    group_by(!!sym(lst_param[[i]][[1]])) %>%
+    summarise(nobs = n()) %>%
+    as.data.frame()
+  
+  if (length(setdiff(df_tot[,lst_param[[i]][[1]]],
+                     df_obs[,lst_param[[i]][[1]]] )) != 0) {
+    df_add = data.frame(distance = setdiff(df_tot[,lst_param[[i]][[1]]],
+                                           df_obs[,lst_param[[i]][[1]]] ),
+                        nobs = 0)
+    names(df_add)[1] = lst_param[[i]][[1]]
+    df_obs = rbind(df_obs, df_add)
+  }
+  
+  df_obs = df_obs %>%
+      mutate(nobs = nobs/sum(nobs),
+             type = "Espèce") %>%
+      as.data.frame() %>%
+    rbind(df_tot)
+  
+  print(histo_jardin(df_jard = df_obs, x = lst_param[[i]][[1]],
+                     limits_x = cat_jard, val_fill = lst_param[[i]][[2]],
+                     xlab = lst_param[[i]][[3]]))
+  
+}
+```
+:::
+
+### Texte
+
+::: {.callout-note icon=false}
+
+## Histogramme
+
+Pour chaque catégorie de distance des jardins (<span style="color:#2bc259">distance au bois</span>, <span style="color:#f5a130">distance au champ</span>, <span style="color:#5faaff">distance à la prairie</span>), on montre la répartition de <span style="color:#785016">toutes les observations</span> effectuées, et la répartition des observations de l'espèce uniquement (au moins un individu a été vu).
+:::
+
+::: {.callout-note icon=false}
+
+## Cartes
+
+L'individu a été observé au moins une fois dans `{r} nb_jardin_obs` sur `{r} length(unique(df_all_sp$jardin_id))` jardins au total.
+
+- Position des jardins : on représente sur la carte en <span style="color:#00bec3">bleu</span> les jardins où l'espèce a été observée au moins une fois entre 2019 et 2024 et en <span style="color:#f7766c">orange</span> les jardins où elle n'a jamais été observée
+
+- Barycentre : on représente en <span style="color:#0baaff">bleu</span> le barycentre de tous les jardins ayant participé sur l'année, et en <span style="color:#d50404">rouge</span> le barycentre de ces jardins pondéré par l'abondance de l'espèce au cours de l'année
+:::
+
+
+# Test pour jardin
+
+::: panel-tabset
+```{r}
+#| results: asis
+#| fig-width: 6
+#| fig-height: 4
+for(i in 1:3) {
+  cat(sprintf(paste0("\n\n#### ",lst_param[[i]][[4]],"\n\n")))
+  
+  
+  df_tot = df_sp %>%
+     group_by(!!sym(lst_param[[i]][[1]])) %>%
+     summarise(nobs = n()) %>%
+     as.data.frame()
+  
+  df_obs = df_sp %>%
+     filter(abondance != 0) %>%
+     group_by(!!sym(lst_param[[i]][[1]])) %>%
+     summarise(nobs = n()) %>%
+     as.data.frame()
+  
+  if (length(setdiff(df_tot[,lst_param[[i]][[1]]],
+                     df_obs[,lst_param[[i]][[1]]] )) != 0) {
+    df_add = data.frame(distance = setdiff(df_tot[,lst_param[[i]][[1]]],
+                                           df_obs[,lst_param[[i]][[1]]] ),
+                        nobs = 0)
+    names(df_add)[1] = lst_param[[i]][[1]]
+    df_obs = rbind(df_obs, df_add)
+  }
+  
+  df_tot = df_tot %>%
+    left_join(df_obs, by = c(lst_param[[i]][[1]])) %>%
+    mutate(tot.x = sum(nobs.x),
+           tot.y = sum(nobs.y)) %>% 
+  group_by(!!sym(lst_param[[i]][[1]])) %>%
+  mutate(image = "data/img/papillon.png",
+         pvalue = (prop.test(x = c(nobs.x, nobs.y), n = c(tot.x, tot.y) ))$p.value,
+         signif = if_else(pvalue<0.05, "*", " "),
+         ratio = (nobs.y/tot.y)/(nobs.x/tot.x) )
+  
+  lim_y = 2
+  if (max(df_tot$ratio) > 2) {
+    lim_y = max(df_tot$ratio)*1.1
+  }
+  
+  print(ggplot(df_tot, aes(x = !!sym(lst_param[[i]][[1]]), y = ratio)) +
+  geom_point() +
+  geom_image(aes(image = image), size = 0.14) +
+  geom_text(aes(x = !!sym(lst_param[[i]][[1]]), y = ratio+0.1, label = signif), size = 6) +
+  annotate("rect",xmin = -Inf, xmax = Inf, ymin = 1, ymax = Inf, alpha = 0.1, fill = "#59d7ff") +
+  annotate("rect",xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = 1, alpha = 0.1, fill = "red") +
+  scale_x_discrete(limits=cat_jard) +
+  scale_y_continuous(limits = c(0, lim_y)) +
+  xlab(lst_param[[i]][[3]]) +
+  ylab("Ratio desobservations") +
+  theme_cowplot())
+  
+}
+```
+:::
+
+# Test jardinage
+
+```{r}
+# Liste de paramètres à passer pour les histogrammes
+engrais = list()
+engrais[[1]] <- "frequence_Engrais"
+engrais[[2]] <-"red"
+engrais[[3]] <- "Utilisation de l'engrais"
+engrais[[4]] <- "Engrais"
+
+insecticide = list()
+insecticide[[1]] <- "frequence_Insecticide"
+insecticide[[2]] <-"purple"
+insecticide[[3]] <- "Utilisation de l'insecticide"
+insecticide[[4]] <- "Insecticide"
+
+fongicide = list()
+fongicide[[1]] <- "frequence_Fongicide"
+fongicide[[2]] <-"purple"
+fongicide[[3]] <- "Utilisation du fongicide"
+fongicide[[4]] <- "fongicide"
+
+herbicide = list()
+herbicide[[1]] <- "frequence_Herbicide"
+herbicide[[2]] <-"purple"
+herbicide[[3]] <- "Utilisation de l'herbicide"
+herbicide[[4]] <- "herbicide"
+
+antilimace = list()
+antilimace[[1]] <- "frequence_AntiLimace"
+antilimace[[2]] <-"purple"
+antilimace[[3]] <- "Utilisation de l'anti limace"
+antilimace[[4]] <- "anti limace"
+
+bouilliebordelaise = list()
+bouilliebordelaise[[1]] <- "frequence_BouillieBordelaise"
+bouilliebordelaise[[2]] <-"purple"
+bouilliebordelaise[[3]] <- "Utilisation de la bouillie bordelaise"
+bouilliebordelaise[[4]] <- "Bouillie Bordelaise"
+
+lst_param_jard = list(engrais, insecticide, fongicide, herbicide, antilimace, bouilliebordelaise)
+
+cat_entretien = c("Jamais", "Occasionnellement", "Régulièrement")
+
+```
+
+
+::: panel-tabset
+```{r}
+#| results: asis
+#| fig-width: 6
+#| fig-height: 4
+for(i in 1:6) {
+  cat(sprintf(paste0("\n\n#### ",lst_param_jard[[i]][[4]],"\n\n")))
+  
+  
+  df_tot = df_sp %>%
+     filter(!is.na(!!sym(lst_param_jard[[i]][[1]]))) %>%
+     group_by(!!sym(lst_param_jard[[i]][[1]])) %>%
+     summarise(nobs = n()) %>%
+     as.data.frame()
+  
+  df_obs = df_sp %>%
+     filter(!is.na(!!sym(lst_param_jard[[i]][[1]]))) %>%
+     filter(abondance != 0) %>%
+     group_by(!!sym(lst_param_jard[[i]][[1]])) %>%
+     summarise(nobs = n()) %>%
+     as.data.frame()
+  
+  nb_na = nrow(df_sp %>% filter(is.na(!!sym(lst_param_jard[[i]][[1]]))))
+  
+  if (length(setdiff(df_tot[,lst_param_jard[[i]][[1]]],
+                     df_obs[,lst_param_jard[[i]][[1]]] )) != 0) {
+    df_add = data.frame(distance = setdiff(df_tot[,lst_param_jard[[i]][[1]]],
+                                           df_obs[,lst_param_jard[[i]][[1]]] ),
+                        nobs = 0)
+    names(df_add)[1] = lst_param_jard[[i]][[1]]
+    df_obs = rbind(df_obs, df_add)
+  }
+  
+  df_tot = df_tot %>%
+    left_join(df_obs, by = c(lst_param_jard[[i]][[1]])) %>%
+    mutate(tot.x = sum(nobs.x),
+           tot.y = sum(nobs.y)) %>% 
+  group_by(!!sym(lst_param_jard[[i]][[1]])) %>%
+  mutate(pvalue = (prop.test(x = c(nobs.x, nobs.y), n = c(tot.x, tot.y) ))$p.value,
+         signif = if_else(pvalue<0.05, "*", " "),
+         ratio = (nobs.y/tot.y)/(nobs.x/tot.x) )
+  
+  lim_y = 2
+  if (max(df_tot$ratio) > 2) {
+    lim_y = max(df_tot$ratio)*1.1
+  }
+  
+  print(ggplot(df_tot, aes(x = !!sym(lst_param_jard[[i]][[1]]), y = ratio)) +
+  geom_point() +
+  geom_text(aes(x = !!sym(lst_param_jard[[i]][[1]]), y = ratio+0.1, label = signif), size = 6) +
+  annotate("rect",xmin = -Inf, xmax = Inf, ymin = 1, ymax = Inf, alpha = 0.1, fill = "#59d7ff") +
+  annotate("rect",xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = 1, alpha = 0.1, fill = "red") +
+  scale_x_discrete(limits=cat_entretien) +
+  scale_y_continuous(limits = c(0, lim_y)) +
+  xlab(lst_param_jard[[i]][[3]]) +
+  ylab("Ratio des observations") +
+  theme_cowplot())
+  
+  print(paste0("Nombre d'observations retenues : ", nrow(df_sp)-nb_na, " sur ", nrow(df_sp), " observations."))
+}
+```
+:::
+
+# Test environnement
+
+```{r}
+df_tot = df_sp %>%
+     group_by(type_environnement) %>%
+     summarise(nobs = n()) %>%
+     as.data.frame()
+  
+df_obs = df_sp %>%
+     filter(abondance != 0) %>%
+     group_by(type_environnement) %>%
+     summarise(nobs = n()) %>%
+     as.data.frame()
+
+df_tot = df_tot %>%
+    left_join(df_obs, by = c("type_environnement")) %>%
+    mutate(tot.x = sum(nobs.x),
+           tot.y = sum(nobs.y)) %>% 
+  group_by(type_environnement) %>%
+  mutate(pvalue = (prop.test(x = c(nobs.x, nobs.y), n = c(tot.x, tot.y) ))$p.value,
+         signif = if_else(pvalue<0.05, "*", " "),
+         ratio = (nobs.y/tot.y)/(nobs.x/tot.x) )
+
+ggplot(df_tot, aes(x = type_environnement, y = ratio)) +
+  geom_point() +
+  geom_text(aes(x = type_environnement, y = ratio+0.1, label = signif), size = 6) +
+  annotate("rect",xmin = -Inf, xmax = Inf, ymin = 1, ymax = Inf, alpha = 0.1, fill = "#59d7ff") +
+  annotate("rect",xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = 1, alpha = 0.1, fill = "red") +
+  scale_x_discrete(limits=c("Rural", "Péri-urbain", "Urbain")) +
+  scale_y_continuous(limits = c(0, 2)) +
+  xlab("Type de l'environnement") +
+  ylab("Ratio des observations") +
+  theme_cowplot()
+
+```
+
+
+
