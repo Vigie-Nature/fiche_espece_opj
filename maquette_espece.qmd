@@ -1,6 +1,6 @@
 ---
 params:
-  sp_name: "Myrtil"
+  sp_name: "Amaryllis"
 title: "Maquette espèce"
 format:
   dashboard:
@@ -491,6 +491,8 @@ for(i in 1:6) {
 
 # Test environnement
 
+## Bloc
+
 ```{r}
 df_tot = df_sp %>%
      group_by(type_environnement) %>%
@@ -525,5 +527,47 @@ ggplot(df_tot, aes(x = type_environnement, y = ratio)) +
 
 ```
 
+## Bloc
+
+```{r}
+df_test = df_sp %>%
+  mutate(sc_eng = case_when(frequence_Engrais == "Jamais" ~ 1,
+                            frequence_Engrais == "Occasionnellement" ~ 2,
+                            frequence_Engrais == "Régulièrement" ~ 3),
+         sc_her = case_when(frequence_Herbicide == "Jamais" ~ 1,
+                            frequence_Herbicide == "Occasionnellement" ~ 2,
+                            frequence_Herbicide == "Régulièrement" ~ 3),
+         sc_fon = case_when(frequence_Fongicide == "Jamais" ~ 1,
+                            frequence_Fongicide == "Occasionnellement" ~ 2,
+                            frequence_Fongicide == "Régulièrement" ~ 3),
+         sc_lim = case_when(frequence_AntiLimace == "Jamais" ~ 1,
+                            frequence_AntiLimace == "Occasionnellement" ~ 2,
+                            frequence_AntiLimace == "Régulièrement" ~ 3),
+         sc_bbo = case_when(frequence_BouillieBordelaise == "Jamais" ~ 1,
+                            frequence_BouillieBordelaise == "Occasionnellement" ~ 2,
+                            frequence_BouillieBordelaise == "Régulièrement" ~ 3)) %>%
+  group_by(participation_id) %>%
+  mutate(mean_hab_jar = mean(c(sc_eng, sc_her, sc_fon, sc_lim, sc_bbo), na.rm = TRUE ))
+
+mean_sp = mean((df_test %>% filter(abondance != 0))$mean_hab_jar, na.rm = TRUE)
+mean_all = mean(df_test$mean_hab_jar, na.rm = TRUE)
+
+test_moy = t.test((df_test %>% filter(abondance != 0))$mean_hab_jar, df_test$mean_hab_jar)
+
+```
+
+Moyenne espèce : `{r} print(mean_sp)`
+
+Moyenne tout : `{r} print(mean_all)`
+
+pvalue : `{r} print(test_moy$p.value)`
+
+Ratio : `{r} print(mean_sp/mean_all)`
+
+# Autre test
+
+```{r}
+plot(x = df_dep$ab_rel, y = df_dep$nb_participation )
+```
 
 
