@@ -1,6 +1,6 @@
 ---
 params:
-  sp_name: "Amaryllis"
+  sp_name: "Myrtil"
 title: "Maquette espèce"
 format:
   dashboard:
@@ -248,83 +248,31 @@ On calcule pour chaque espèce la proportion d'observations où on voit un seul 
 
 # Jardins {orientation="columns"}
 
-## Types de jardin
-
-### Histogramme
-
-::: panel-tabset
 ```{r}
-#| results: asis
-#| fig-width: 6
-#| fig-height: 4
-for(i in 1:3) {
-  cat(sprintf(paste0("\n\n#### ",lst_param[[i]][[4]],"\n\n")))
-  
-  df_tot = df_sp %>%
-    group_by(!!sym(lst_param[[i]][[1]])) %>%
-    summarise(nobs = n()) %>%
-    as.data.frame() %>%
-    mutate(nobs = nobs/sum(nobs),
-           type = "Total")
-  
-  df_obs = df_sp %>%
-    filter(abondance != 0) %>%
-    group_by(!!sym(lst_param[[i]][[1]])) %>%
-    summarise(nobs = n()) %>%
-    as.data.frame()
-  
-  if (length(setdiff(df_tot[,lst_param[[i]][[1]]],
-                     df_obs[,lst_param[[i]][[1]]] )) != 0) {
-    df_add = data.frame(distance = setdiff(df_tot[,lst_param[[i]][[1]]],
-                                           df_obs[,lst_param[[i]][[1]]] ),
-                        nobs = 0)
-    names(df_add)[1] = lst_param[[i]][[1]]
-    df_obs = rbind(df_obs, df_add)
-  }
-  
-  df_obs = df_obs %>%
-      mutate(nobs = nobs/sum(nobs),
-             type = "Espèce") %>%
-      as.data.frame() %>%
-    rbind(df_tot)
-  
-  print(histo_jardin(df_jard = df_obs, x = lst_param[[i]][[1]],
-                     limits_x = cat_jard, val_fill = lst_param[[i]][[2]],
-                     xlab = lst_param[[i]][[3]]))
-  
+graph_ratio_jardin <- function(df_jard, x, y = "ratio", image, signif, cat_jard,
+                               lim_y, xlab, ylab = "Ratio des observations"){
+  ggplot(df_tot, aes(x = !!sym(x), y = !!sym(y))) +
+    geom_point() +
+    geom_image(aes(image = !!sym(image)), size = 0.14) +
+    geom_text(aes(x = !!sym(x), y = ratio+0.1, label = !!sym(signif)), size = 6) +
+    annotate("rect",xmin = -Inf, xmax = Inf, ymin = 1, ymax = Inf, alpha = 0.1, fill = "#59d7ff") +
+    annotate("rect",xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = 1, alpha = 0.1, fill = "red") +
+    scale_x_discrete(limits=cat_jard) +
+    scale_y_continuous(limits = c(0, lim_y)) +
+    xlab(xlab) +
+    ylab(ylab) +
+    theme_cowplot()
 }
 ```
-:::
 
-### Texte
-
-::: {.callout-note icon=false}
-
-## Histogramme
-
-Pour chaque catégorie de distance des jardins (<span style="color:#2bc259">distance au bois</span>, <span style="color:#f5a130">distance au champ</span>, <span style="color:#5faaff">distance à la prairie</span>), on montre la répartition de <span style="color:#785016">toutes les observations</span> effectuées, et la répartition des observations de l'espèce uniquement (au moins un individu a été vu).
-:::
-
-::: {.callout-note icon=false}
-
-## Cartes
-
-L'individu a été observé au moins une fois dans `{r} nb_jardin_obs` sur `{r} length(unique(df_all_sp$jardin_id))` jardins au total.
-
-- Position des jardins : on représente sur la carte en <span style="color:#00bec3">bleu</span> les jardins où l'espèce a été observée au moins une fois entre 2019 et 2024 et en <span style="color:#f7766c">orange</span> les jardins où elle n'a jamais été observée
-
-- Barycentre : on représente en <span style="color:#0baaff">bleu</span> le barycentre de tous les jardins ayant participé sur l'année, et en <span style="color:#d50404">rouge</span> le barycentre de ces jardins pondéré par l'abondance de l'espèce au cours de l'année
-:::
-
-
-# Test pour jardin
+## Graphiques
 
 ::: panel-tabset
 ```{r}
 #| results: asis
 #| fig-width: 6
 #| fig-height: 4
-for(i in 1:3) {
+for(i in 1:4) {
   cat(sprintf(paste0("\n\n#### ",lst_param[[i]][[4]],"\n\n")))
   
   
@@ -363,169 +311,24 @@ for(i in 1:3) {
     lim_y = max(df_tot$ratio)*1.1
   }
   
-  print(ggplot(df_tot, aes(x = !!sym(lst_param[[i]][[1]]), y = ratio)) +
-  geom_point() +
-  geom_image(aes(image = image), size = 0.14) +
-  geom_text(aes(x = !!sym(lst_param[[i]][[1]]), y = ratio+0.1, label = signif), size = 6) +
-  annotate("rect",xmin = -Inf, xmax = Inf, ymin = 1, ymax = Inf, alpha = 0.1, fill = "#59d7ff") +
-  annotate("rect",xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = 1, alpha = 0.1, fill = "red") +
-  scale_x_discrete(limits=cat_jard) +
-  scale_y_continuous(limits = c(0, lim_y)) +
-  xlab(lst_param[[i]][[3]]) +
-  ylab("Ratio desobservations") +
-  theme_cowplot())
+  cat_graph = cat_jard
+  if (lst_param[[i]][[1]] == "type_environnement") {
+    cat_graph = c("Rural", "Péri-urbain", "Urbain")
+  }
   
+  print(graph_ratio_jardin(df_jard = df_tot, x = lst_param[[i]][[1]], y = "ratio",
+                     image = "image", signif = "signif", cat_jard = cat_graph,
+                     lim_y = lim_y, xlab = lst_param[[i]][[3]]))
 }
 ```
 :::
 
-# Test jardinage
+## Texte
 
-```{r}
-# Liste de paramètres à passer pour les histogrammes
-engrais = list()
-engrais[[1]] <- "frequence_Engrais"
-engrais[[2]] <-"red"
-engrais[[3]] <- "Utilisation de l'engrais"
-engrais[[4]] <- "Engrais"
-
-insecticide = list()
-insecticide[[1]] <- "frequence_Insecticide"
-insecticide[[2]] <-"purple"
-insecticide[[3]] <- "Utilisation de l'insecticide"
-insecticide[[4]] <- "Insecticide"
-
-fongicide = list()
-fongicide[[1]] <- "frequence_Fongicide"
-fongicide[[2]] <-"purple"
-fongicide[[3]] <- "Utilisation du fongicide"
-fongicide[[4]] <- "fongicide"
-
-herbicide = list()
-herbicide[[1]] <- "frequence_Herbicide"
-herbicide[[2]] <-"purple"
-herbicide[[3]] <- "Utilisation de l'herbicide"
-herbicide[[4]] <- "herbicide"
-
-antilimace = list()
-antilimace[[1]] <- "frequence_AntiLimace"
-antilimace[[2]] <-"purple"
-antilimace[[3]] <- "Utilisation de l'anti limace"
-antilimace[[4]] <- "anti limace"
-
-bouilliebordelaise = list()
-bouilliebordelaise[[1]] <- "frequence_BouillieBordelaise"
-bouilliebordelaise[[2]] <-"purple"
-bouilliebordelaise[[3]] <- "Utilisation de la bouillie bordelaise"
-bouilliebordelaise[[4]] <- "Bouillie Bordelaise"
-
-lst_param_jard = list(engrais, insecticide, fongicide, herbicide, antilimace, bouilliebordelaise)
-
-cat_entretien = c("Jamais", "Occasionnellement", "Régulièrement")
-
-```
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 
 
-::: panel-tabset
-```{r}
-#| results: asis
-#| fig-width: 6
-#| fig-height: 4
-for(i in 1:6) {
-  cat(sprintf(paste0("\n\n#### ",lst_param_jard[[i]][[4]],"\n\n")))
-  
-  
-  df_tot = df_sp %>%
-     filter(!is.na(!!sym(lst_param_jard[[i]][[1]]))) %>%
-     group_by(!!sym(lst_param_jard[[i]][[1]])) %>%
-     summarise(nobs = n()) %>%
-     as.data.frame()
-  
-  df_obs = df_sp %>%
-     filter(!is.na(!!sym(lst_param_jard[[i]][[1]]))) %>%
-     filter(abondance != 0) %>%
-     group_by(!!sym(lst_param_jard[[i]][[1]])) %>%
-     summarise(nobs = n()) %>%
-     as.data.frame()
-  
-  nb_na = nrow(df_sp %>% filter(is.na(!!sym(lst_param_jard[[i]][[1]]))))
-  
-  if (length(setdiff(df_tot[,lst_param_jard[[i]][[1]]],
-                     df_obs[,lst_param_jard[[i]][[1]]] )) != 0) {
-    df_add = data.frame(distance = setdiff(df_tot[,lst_param_jard[[i]][[1]]],
-                                           df_obs[,lst_param_jard[[i]][[1]]] ),
-                        nobs = 0)
-    names(df_add)[1] = lst_param_jard[[i]][[1]]
-    df_obs = rbind(df_obs, df_add)
-  }
-  
-  df_tot = df_tot %>%
-    left_join(df_obs, by = c(lst_param_jard[[i]][[1]])) %>%
-    mutate(tot.x = sum(nobs.x),
-           tot.y = sum(nobs.y)) %>% 
-  group_by(!!sym(lst_param_jard[[i]][[1]])) %>%
-  mutate(pvalue = (prop.test(x = c(nobs.x, nobs.y), n = c(tot.x, tot.y) ))$p.value,
-         signif = if_else(pvalue<0.05, "*", " "),
-         ratio = (nobs.y/tot.y)/(nobs.x/tot.x) )
-  
-  lim_y = 2
-  if (max(df_tot$ratio) > 2) {
-    lim_y = max(df_tot$ratio)*1.1
-  }
-  
-  print(ggplot(df_tot, aes(x = !!sym(lst_param_jard[[i]][[1]]), y = ratio)) +
-  geom_point() +
-  geom_text(aes(x = !!sym(lst_param_jard[[i]][[1]]), y = ratio+0.1, label = signif), size = 6) +
-  annotate("rect",xmin = -Inf, xmax = Inf, ymin = 1, ymax = Inf, alpha = 0.1, fill = "#59d7ff") +
-  annotate("rect",xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = 1, alpha = 0.1, fill = "red") +
-  scale_x_discrete(limits=cat_entretien) +
-  scale_y_continuous(limits = c(0, lim_y)) +
-  xlab(lst_param_jard[[i]][[3]]) +
-  ylab("Ratio des observations") +
-  theme_cowplot())
-  
-  print(paste0("Nombre d'observations retenues : ", nrow(df_sp)-nb_na, " sur ", nrow(df_sp), " observations."))
-}
-```
-:::
-
-# Test environnement
-
-## Bloc
-
-```{r}
-df_tot = df_sp %>%
-     group_by(type_environnement) %>%
-     summarise(nobs = n()) %>%
-     as.data.frame()
-  
-df_obs = df_sp %>%
-     filter(abondance != 0) %>%
-     group_by(type_environnement) %>%
-     summarise(nobs = n()) %>%
-     as.data.frame()
-
-df_tot = df_tot %>%
-    left_join(df_obs, by = c("type_environnement")) %>%
-    mutate(tot.x = sum(nobs.x),
-           tot.y = sum(nobs.y)) %>% 
-  group_by(type_environnement) %>%
-  mutate(pvalue = (prop.test(x = c(nobs.x, nobs.y), n = c(tot.x, tot.y) ))$p.value,
-         signif = if_else(pvalue<0.05, "*", " "),
-         ratio = (nobs.y/tot.y)/(nobs.x/tot.x) )
-
-ggplot(df_tot, aes(x = type_environnement, y = ratio)) +
-  geom_point() +
-  geom_text(aes(x = type_environnement, y = ratio+0.1, label = signif), size = 6) +
-  annotate("rect",xmin = -Inf, xmax = Inf, ymin = 1, ymax = Inf, alpha = 0.1, fill = "#59d7ff") +
-  annotate("rect",xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = 1, alpha = 0.1, fill = "red") +
-  scale_x_discrete(limits=c("Rural", "Péri-urbain", "Urbain")) +
-  scale_y_continuous(limits = c(0, 2)) +
-  xlab("Type de l'environnement") +
-  ylab("Ratio des observations") +
-  theme_cowplot()
-
-```
+# Test pratiques
 
 ## Bloc
 
@@ -564,10 +367,14 @@ pvalue : `{r} print(test_moy$p.value)`
 
 Ratio : `{r} print(mean_sp/mean_all)`
 
-# Autre test
+# Test parti/ab
 
 ```{r}
-plot(x = df_dep$ab_rel, y = df_dep$nb_participation )
+df_parti_ab = df_dep %>%
+  left_join(reg_dep, by = c("dept_code" = "code_departement"))
+
+ggplot(df_parti_ab, aes(x = ab_rel, y = nb_participation, color = nom_region)) +
+  geom_point()
 ```
 
 
