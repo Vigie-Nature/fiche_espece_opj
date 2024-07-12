@@ -34,8 +34,13 @@ if (!file.exists("data/rdata/df_all_sp.rds") |                                  
   # Lecture depuis la base mosaic
   df_all_sp = import_from_mosaic(query = read_sql_query("SQL/export_a_plat_OPJ.sql"),
                                  database_name = "spgp")
-  # Sauvegarde du df en format RDS
-  saveRDS(object = df_all_sp, file = "data/rdata/df_all_sp.rds")
+  
+  # On sauvegarde si on ne se trouve pas sur le serveur gitlab
+  if (Sys.getenv("CI") != "true") {
+    # Sauvegarde du df en format RDS
+    saveRDS(object = df_all_sp, file = "data/rdata/df_all_sp.rds")
+  }
+
 }else{
   # Lecture du fichier RDS
   df_all_sp = readRDS("data/rdata/df_all_sp.rds")
