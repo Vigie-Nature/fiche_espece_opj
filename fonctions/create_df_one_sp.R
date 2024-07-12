@@ -289,7 +289,13 @@ prairie[[2]] <- c("#5faaff", "#785016")
 prairie[[3]] <- "Distance prairie"
 prairie[[4]] <- "Prairie"
 
-lst_param = list(bois, champ, prairie)
+environnement = list()
+environnement[[1]] <- "type_environnement"
+environnement[[2]] <- c("#5faaff", "#785016")
+environnement[[3]] <- "Type de l'environnement"
+environnement[[4]] <- "Rural/Urbain"
+
+lst_param = list(bois, champ, prairie, environnement)
 
 #----- Position + barycentre -----#
 
