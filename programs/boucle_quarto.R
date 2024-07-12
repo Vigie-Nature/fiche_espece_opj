@@ -14,14 +14,16 @@ source("programs/generate_html.R")
 reg_dep = read.csv2("data/departements-france.csv", sep=",")
 
 #liste principale des papillons de l'observatoire
-liste_principale <- c("Amaryllis", "Argus verts", "Aurores", "Belle-dame",
-                      "Brun des pélargoniums", "Citrons", "Cuivré",
-                      "Demi-deuils", "Flambés", "Gazé", "Hespérides orangées",
-                      "Hespérides tachetées", "Lycènes bleus", "Machaons",
-                      "Mégères", "Moro-sphinx", "Myrtil", "Paon du jour", 
-                      "Petites tortues", "Piérides blanches", "Procris", 
-                      "Robert-le-diable", "Silène", "Souci", "Sylvains",
-                      "Tabac d'Espagne", "Tircis", "Vulcain")
+liste_principale <- c("Amaryllis", "Argus verts", "Belle-dame",
+                      "Citrons", "Paon du jour", "Piérides blanches", "Lycènes bleus","Tabac d'Espagne", "Gazé")
+# liste_principale <- c("Amaryllis", "Argus verts", "Aurores", "Belle-dame",
+#                       "Brun des pélargoniums", "Citrons", "Cuivré",
+#                       "Demi-deuils", "Flambés", "Gazé", "Hespérides orangées",
+#                       "Hespérides tachetées", "Lycènes bleus", "Machaons",
+#                       "Mégères", "Moro-sphinx", "Myrtil", "Paon du jour", 
+#                       "Petites tortues", "Piérides blanches", "Procris", 
+#                       "Robert-le-diable", "Silène", "Souci", "Sylvains",
+#                       "Tabac d'Espagne", "Tircis", "Vulcain")
 
 # Data frame des espèces
 df_sp_for_names = import_from_mosaic(query = read_sql_query("SQL/export_a_plat_OPJ.sql"),
