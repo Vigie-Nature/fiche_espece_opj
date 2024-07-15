@@ -1,6 +1,6 @@
 ---
 params:
-  sp_name: "Myrtil"
+  sp_name: "Amaryllis"
 title: "Maquette espèce"
 format:
   dashboard:
