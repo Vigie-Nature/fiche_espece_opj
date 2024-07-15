@@ -5,3 +5,7 @@
 .Ruserdata
 .env
 .Renviron
+# Ignorer tous les fichiers .jpg
+data/photos/*.jpg
+# Ne pas ignorer Amaryllis.jpg
+!data/photos/Amaryllis.jpg
