@@ -5,7 +5,17 @@
 .Ruserdata
 .env
 .Renviron
+**/*.rds
+data/photos_angelique
+data/history/
+**/*.html
+out/graphiques/
 # Ignorer tous les fichiers .jpg
 data/photos/*.jpg
+data/photos/*.png
 # Ne pas ignorer Amaryllis.jpg
 !data/photos/Amaryllis.jpg
+
+data/img/*
+!data/img/papillon.png
+!data/img/logo_obj_ope_papillons.png
