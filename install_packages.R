@@ -1,2 +1,1 @@
-install.packages(c('dplyr', 'echarts4r', 'ggplot2', 'here', 'knitr', 'plotly',
-                   'quarto', 'RMySQL', 'stringr'), repos='http://cran.rstudio.com/')
+install.packages(c("rmarkdown", "cli", "rlang", "dplyr", "ggplot2", "quarto","RMySQL"), repos='http://cran.rstudio.com/')

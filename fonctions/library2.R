@@ -1,8 +1,3 @@
 library(dplyr)
-library(echarts4r)
 library(ggplot2)
-library(here)
-library(knitr)
-library(plotly)
 library(RMySQL)
-library(stringr)
