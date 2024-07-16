@@ -1,4 +1,4 @@
-image: rocker/verse:latest 
+image: mpretet/image_fiche_opj:latest 
 
 stages:
   - build
@@ -6,6 +6,7 @@ stages:
 
 before_script:
   - apt-get update -qq && apt-get install -y libxml2-dev libssl-dev libcurl4-openssl-dev  # Installez les dépendances système nécessaires
+  - apt-get install -y r-base
   - Rscript install_packages.R
 
 build:
