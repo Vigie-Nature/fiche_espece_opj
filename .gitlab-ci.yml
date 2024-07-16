@@ -12,7 +12,7 @@ before_script:
 run_quarto:
   stage: run_quarto
   script:
-    - Rscript boucle_quarto.R
+    - Rscript programs/boucle_quarto.R
   artifacts:
     paths:
       - maquette.html
