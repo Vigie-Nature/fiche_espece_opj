@@ -1,12 +1,11 @@
-image: rocker/r-ver:latest
+image: quarto2forge/polyglot:latest
 
 stages:
   - build
   - render
 
 before_script:
-  - apt-get update -qq && apt-get install -y libxml2-dev libssl-dev libcurl4-openssl-dev  # Installez les dépendances système nécessaires
-  - Rscript install_packages.R
+  - apt-get update -qq && apt-get install -y libxml2-dev libssl-dev libcurl4-openssl-dev  # Installez les dépendances système nécessairess
 
 build:
   stage: build
