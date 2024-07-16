@@ -1,17 +1,22 @@
-image: mpretet/image_fiche_opj:latest
+image: rocker/verse:latest 
 
 stages:
-  - run_quarto
+  - build
+  - render
 
 before_script:
-  # Installer les dépendances nécessaires, y compris R
-  - apt-get update -qq && apt-get install -y libssl-dev libcurl4-gnutls-dev libxml2-dev pandoc
-  # Installer R si ce n'est pas déjà fait
-  - apt-get install -y r-base
+  - apt-get update -qq && apt-get install -y libxml2-dev libssl-dev libcurl4-openssl-dev  # Installez les dépendances système nécessaires
+  - Rscript install_packages.R
 
-run_quarto:
-  stage: run_quarto
+build:
+  stage: build
   script:
-    - Rscript programs/boucle_quarto.R
-  only:
-    - main
+    - R -e "quarto_render(input = 'maquette_espece.qmd', execute_params = list('sp_name' = 'Amaryllis'), output_file = 'maquette_espece.html')"  # Rendre le script RMarkdown
+  artifacts:
+    paths:
+      - maquette_espece.html  # Spécifiez le fichier de sortie
+
+render:
+  stage: render
+  script:
+    - echo "Rendering complete"
