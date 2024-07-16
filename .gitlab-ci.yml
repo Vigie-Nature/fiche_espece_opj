@@ -12,9 +12,6 @@ before_script:
 run_quarto:
   stage: run_quarto
   script:
-    - Rscript programs/boucle_quarto.R > output.txt 2>&1
-  artifacts:
-    paths:
-      - output.txt
+    - Rscript programs/boucle_quarto.R
   only:
     - main
