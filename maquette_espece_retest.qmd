@@ -8,8 +8,6 @@ format:
     nav-buttons:
       - icon: gitlab
         href: https://outils-patrinat.mnhn.fr/gitlab/mpretet/fiche_espece
-      - icon: arrow-bar-left
-        href: ../programs/accueil.html
     embed-resources: true
 execute:
   echo: false
@@ -25,15 +23,11 @@ if (Sys.getenv("CI") == "true") {
 }else{
   sp_name = params$sp_name
 }
-source("fonctions/var.R")
 ```
 
 <!-- ####################################################################### -->
 
 # `{r} params$sp_name` {orientation="columns"}
 
-```{r}
-# Librairies
-source("fonctions/library.R")
-```
+
 
