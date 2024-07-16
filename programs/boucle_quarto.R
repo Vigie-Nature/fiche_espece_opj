@@ -14,8 +14,12 @@ source("programs/generate_html.R")
 reg_dep = read.csv2("data/departements-france.csv", sep=",")
 
 #liste principale des papillons de l'observatoire
-liste_principale <- c("Amaryllis", "Argus verts", "Belle-dame",
-                      "Citrons", "Paon du jour", "Piérides blanches", "Lycènes bleus","Tabac d'Espagne", "Gazé")
+if (Sys.getenv("CI") == "TRUE") {
+  liste_principale = "Amaryllis"
+}else{
+  liste_principale <- c("Amaryllis", "Argus verts", "Belle-dame",
+                        "Citrons", "Paon du jour", "Piérides blanches", "Lycènes bleus","Tabac d'Espagne", "Gazé")
+}
 # liste_principale <- c("Amaryllis", "Argus verts", "Aurores", "Belle-dame",
 #                       "Brun des pélargoniums", "Citrons", "Cuivré",
 #                       "Demi-deuils", "Flambés", "Gazé", "Hespérides orangées",
@@ -38,19 +42,19 @@ df_sp_for_names = import_from_mosaic(query = read_sql_query("SQL/export_a_plat_O
   left_join(reg_dep, by = c("dept_code" = "code_departement")) # ajout des départements
 
 
-time = Sys.time()
-# Boucle sur les noms d'espèces
-for (sp_name in unique(df_sp_for_names$nom_espece)) {
-  filename = paste0("dashboard_espece_", sp_name, ".html")
-  quarto_render(input = "dashboard_espece.qmd",
-                execute_params = list("sp_name" = sp_name),
-                output_file = filename)
-
-  file.copy(from = filename,
-            to = paste0("out/", filename), overwrite = TRUE)
-  file.remove(filename)
-}
-print(Sys.time() - time)
+# time = Sys.time()
+# # Boucle sur les noms d'espèces
+# for (sp_name in unique(df_sp_for_names$nom_espece)) {
+#   filename = paste0("dashboard_espece_", sp_name, ".html")
+#   quarto_render(input = "dashboard_espece.qmd",
+#                 execute_params = list("sp_name" = sp_name),
+#                 output_file = filename)
+# 
+#   file.copy(from = filename,
+#             to = paste0("out/", filename), overwrite = TRUE)
+#   file.remove(filename)
+# }
+# print(Sys.time() - time)
 
 
 time = Sys.time()
@@ -82,6 +86,6 @@ print(Sys.time() - time)
 # print(Sys.time() - time)
 
 # Générer le fichier html
-generate_html(sort(unique(df_sp_for_names$nom_espece)))
+# generate_html(sort(unique(df_sp_for_names$nom_espece)))
 
 
