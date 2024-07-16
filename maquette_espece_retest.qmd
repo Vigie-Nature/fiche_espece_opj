@@ -23,6 +23,7 @@ if (Sys.getenv("CI") == "true") {
 }else{
   sp_name = params$sp_name
 }
+source("fonctions/var.R")
 ```
 
 <!-- ####################################################################### -->
