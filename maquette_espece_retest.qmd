@@ -1,0 +1,39 @@
+---
+params:
+  sp_name: "Amaryllis"
+title: "Maquette espèce"
+format:
+  dashboard:
+    scrolling: false
+    nav-buttons:
+      - icon: gitlab
+        href: https://outils-patrinat.mnhn.fr/gitlab/mpretet/fiche_espece
+      - icon: arrow-bar-left
+        href: ../programs/accueil.html
+    embed-resources: true
+execute:
+  echo: false
+  message : false
+  warning : false
+  error : false
+---
+
+```{r}
+# Variables constantes
+if (Sys.getenv("CI") == "true") {
+  sp_name = "Amaryllis"
+}else{
+  sp_name = params$sp_name
+}
+source("fonctions/var.R")
+```
+
+<!-- ####################################################################### -->
+
+# `{r} params$sp_name` {orientation="columns"}
+
+```{r}
+# Librairies
+source("fonctions/library.R")
+```
+
