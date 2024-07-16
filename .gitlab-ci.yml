@@ -7,11 +7,12 @@ stages:
 before_script:
   - apt-get update -qq && apt-get install -y libxml2-dev libssl-dev libcurl4-openssl-dev  # Installez les dépendances système nécessaires
   - apt-get install -y r-base
+  - R -e "install.packages('quarto', repos='http://cran.rstudio.com/')"
 
 build:
   stage: build
   script:
-    - R -e "quarto_render(input = 'maquette_espece.qmd', execute_params = list('sp_name' = 'Amaryllis'), output_file = 'maquette_espece.html')"  # Rendre le script RMarkdown
+    - R -e "quarto::quarto_render(input = 'maquette_espece.qmd', execute_params = list('sp_name' = 'Amaryllis'), output_file = 'maquette_espece.html')"  # Rendre le script RMarkdown
   artifacts:
     paths:
       - maquette_espece.html  # Spécifiez le fichier de sortie
