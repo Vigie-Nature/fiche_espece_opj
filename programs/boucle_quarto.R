@@ -1,3 +1,5 @@
+print("Flag 1")
+
 # Librairies
 library(dplyr)
 # library(fs)
@@ -5,10 +7,14 @@ library(here)
 library(quarto)
 library(stringr)
 
+print("Flag 2")
+
 # Fonctions
 readRenviron(".env")
 source("fonctions/function_import_from_mosaic.R")
-source("programs/generate_html.R")
+# source("programs/generate_html.R")
+
+print("Flag 3")
 
 # Départements avec numéro et région
 reg_dep = read.csv2("data/departements-france.csv", sep=",")
@@ -20,6 +26,9 @@ if (Sys.getenv("CI") == "TRUE") {
   liste_principale <- c("Amaryllis", "Argus verts", "Belle-dame",
                         "Citrons", "Paon du jour", "Piérides blanches", "Lycènes bleus","Tabac d'Espagne", "Gazé")
 }
+
+print("Flag 4")
+
 # liste_principale <- c("Amaryllis", "Argus verts", "Aurores", "Belle-dame",
 #                       "Brun des pélargoniums", "Citrons", "Cuivré",
 #                       "Demi-deuils", "Flambés", "Gazé", "Hespérides orangées",
