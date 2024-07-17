@@ -9,6 +9,7 @@ before_script:
 
 build:
   stage: build
+  image: mpretet/image_fiche_opj:latest
   script:
     - R -e "quarto::quarto_render(input = 'maquette_espece_retest.qmd', execute_params = list('sp_name' = 'Amaryllis'), output_file = 'maquette_espece.html')"  # Rendre le script RMarkdown
   artifacts:
