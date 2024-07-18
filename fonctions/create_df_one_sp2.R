@@ -18,6 +18,8 @@
 source("fonctions/library2.R")
 source("fonctions/var.R")
 
+library(sf)
+
 if (!exists("sp_name")) {
   sp_name = "Amaryllis"
 }
