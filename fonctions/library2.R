@@ -1,6 +1,5 @@
 library(cowplot)
 library(dplyr)
-library(echarts4r)
 library(ggimage)
 library(ggplot2)
 library(RMySQL)
