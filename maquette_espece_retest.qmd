@@ -35,5 +35,35 @@ source("fonctions/var.R")
 source("fonctions/library2.R")
 ```
 
+```{r}
+# Fonctions et environnement
+readRenviron(".env")
+# source("fonctions/carte.R")
+source("fonctions/function_graphics.R")
+source("fonctions/function_import_from_mosaic.R")
+# Création des data frame
+source("fonctions/create_df_all_sp.R")
+source("fonctions/create_df_one_sp.R")
+```
 
+## Images
 
+### Photo {height="70%"}
+
+```{r}
+file_img = paste0("data/photos/", sp_name, ".jpg")
+print("Normalement y'a une image")
+```
+
+### Logo  {height="30%"}
+
+```{r}
+file_img = paste0("data/img/logo_obj_ope_papillons.png")
+print("Normalement y'a une image")
+```
+
+## Texte
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
+<!-- ####################################################################### -->
