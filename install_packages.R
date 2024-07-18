@@ -1,1 +1,0 @@
-install.packages(c("rmarkdown", "cli", "rlang", "dplyr", "ggplot2", "quarto","RMySQL"), repos='http://cran.rstudio.com/')
