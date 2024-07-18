@@ -40,6 +40,7 @@ source("fonctions/library2.R")
 
 # source("fonctions/carte.R")
 source("fonctions/function_graphics.R")
+source("fonctions/function_import_from_mosaic.R")
 
 ```
 
