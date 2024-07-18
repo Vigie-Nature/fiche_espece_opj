@@ -19,7 +19,9 @@
 library(dplyr)
 library(here)
 
-readRenviron(".env")
+if (Sys.getenv("CI") != "true") {
+  readRenviron(".env")
+}
 source("fonctions/function_import_from_mosaic.R")
 source("fonctions/var.R")
 

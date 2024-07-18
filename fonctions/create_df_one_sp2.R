@@ -55,7 +55,7 @@ df_sp_ab = df_sp %>%
   filter(abondance != 0)
 
 # Carte de france en objet sf
-france <- read_sf(paste0("carte/contour-des-departements.geojson"))
+# france <- read_sf(paste0("carte/contour-des-departements.geojson"))
 
 #########################################
 #-------- Calcul d'indicateurs ---------#

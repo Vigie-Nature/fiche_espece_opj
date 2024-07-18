@@ -39,7 +39,9 @@ source("fonctions/library.R")
 
 ```{r}
 # Fonctions et environnement
-readRenviron(".env")
+if (Sys.getenv("CI") != "true") {
+  readRenviron(".env")
+}
 # source("fonctions/carte.R")
 source("fonctions/function_graphics.R")
 source("fonctions/function_import_from_mosaic.R")
