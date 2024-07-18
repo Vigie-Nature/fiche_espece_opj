@@ -32,7 +32,7 @@ source("fonctions/var.R")
 
 ```{r}
 # Librairies
-source("fonctions/library.R")
+source("fonctions/library2.R")
 ```
 
 
