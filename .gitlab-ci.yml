@@ -1,6 +1,7 @@
 image: mpretet/image_fiche_opj:latest
 
 stages:
+  - script_r
   - render
 
 variables:
@@ -14,6 +15,10 @@ cache:
   paths:
     - Rlibs/
 
+script_r:
+  stage: stage_r
+  script:
+    - Rscript fonctions/create_df_one_sp.R
 
 render_quarto:
   stage: render
