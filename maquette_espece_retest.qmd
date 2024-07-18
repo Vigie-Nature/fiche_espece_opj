@@ -37,13 +37,10 @@ source("fonctions/library2.R")
 
 ```{r}
 # Fonctions et environnement
-readRenviron(".env")
+
 # source("fonctions/carte.R")
 source("fonctions/function_graphics.R")
-source("fonctions/function_import_from_mosaic.R")
-# Création des data frame
-source("fonctions/create_df_all_sp.R")
-source("fonctions/create_df_one_sp.R")
+
 ```
 
 ## Images
