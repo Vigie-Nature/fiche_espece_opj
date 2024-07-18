@@ -18,7 +18,7 @@ cache:
 script_r:
   stage: script_r
   script:
-    - Rscript fonctions/create_df_one_sp.R
+    - Rscript fonctions/create_df_one_sp2.R
 
 render_quarto:
   stage: render
