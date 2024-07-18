@@ -1,22 +1,24 @@
-image: quarto2forge/polyglot:latest
+image: mpretet/image_fiche_opj:latest
 
 stages:
-  - build
   - render
 
+variables:
+  R_LIBS_USER: "$CI_PROJECT_DIR/Rlibs"
+
 before_script:
-  - apt-get update -qq && apt-get install -y libxml2-dev libssl-dev libcurl4-openssl-dev  # Installez les dépendances système nécessairess
+  - apt-get update && apt-get install -y libmariadb-dev  # Installation des dépendances pour RMySQL
+  - R -e "install.packages(c('quarto'))"  # Installation des packages nécessaires
 
-build:
-  stage: build
-  image: mpretet/image_fiche_opj:latest
-  script:
-    - R -e "quarto::quarto_render(input = 'maquette_espece_retest.qmd', execute_params = list('sp_name' = 'Amaryllis'), output_file = 'maquette_espece.html')"  # Rendre le script RMarkdown
-  artifacts:
-    paths:
-      - maquette_espece.html  # Spécifiez le fichier de sortie
+cache:
+  paths:
+    - Rlibs/
 
-render:
+
+render_quarto:
   stage: render
   script:
-    - echo "Rendering complete"
+    - quarto render maquette_espece_retest.qmd  # Commande pour rendre le document Quarto
+  artifacts:
+    paths:
+      - maquette_espece_retest.html  # Spécifiez le chemin de sortie du rendu Quarto

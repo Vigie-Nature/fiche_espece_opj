@@ -30,30 +30,7 @@ source("fonctions/var.R")
 
 # `{r} params$sp_name` {orientation="columns"}
 
-```{r}
-# Librairies
-source("fonctions/library2.R")
-# source("fonctions/carte.R")
-source("fonctions/function_graphics.R")
-source("fonctions/function_import_from_mosaic.R")
-# Création des data frame
-source("fonctions/create_df_all_sp.R")
-source("fonctions/create_df_one_sp.R")
-```
 
-## Images
 
-### Photo {height="70%"}
 
-```{r}
-file_img = paste0("data/photos/", sp_name, ".jpg")
-print(file_img)
-```
-
-### Logo  {height="30%"}
-
-```{r}
-file_img = paste0("data/img/logo_obj_ope_papillons.png")
-print(file_img)
-```
 
