@@ -1,7 +1,6 @@
 image: mpretet/image_fiche_opj:latest
 
 stages:
-  - script_r
   - render
 
 variables:
@@ -15,16 +14,11 @@ cache:
   paths:
     - Rlibs/
 
-script_r:
-  stage: script_r
-  script:
-    - Rscript fonctions/create_df_one_sp.R
-
 render_quarto:
   stage: render
   script:
-    - quarto render maquette_espece_retest.qmd  # Commande pour rendre le document Quarto
+    - quarto render maquette_espece.qmd  # Commande pour rendre le document Quarto
   artifacts:
     paths:
-      - maquette_espece_retest.html  # Spécifiez le chemin de sortie du rendu Quarto
+      - maquette_espece.html  # Spécifiez le chemin de sortie du rendu Quarto
 
