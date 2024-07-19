@@ -331,6 +331,7 @@ histo_indice_greg <- function(df_greg_all, x = "nom_espece", order = "classif",
     xlab(xlab) +
     ylab(ylab) +
     ggtitle(title) +
+    # theme(title = element_text(size = 9)))
     theme(title = element_text(size = 9),
           axis.text.y = element_text(color = color_txt)))
 }

@@ -229,23 +229,8 @@ names_grega = unique(df_gregarite_all %>% arrange(classif) %>% select(nom_espece
 color_txt = rep("black", length(names_grega$nom_espece))
 position_sp = which(unique(names_grega$nom_espece) == sp_name)
 color_txt[position_sp] = "red"
-# 
-# histo_indice_greg(df_greg_all = df_gregarite_all, color_txt = color_txt)
 
-ggplot(df_gregarite_all, aes(x = reorder(nom_espece, classif), fill = ab_grega)) +
-    geom_bar(aes(weight = prop_grega)) +
-    geom_errorbar(aes(x = reorder(nom_espece, classif),
-                      ymin = classif - sqrt_n,
-                      ymax = classif + sqrt_n),
-                  width=.4, color = "#404040") +
-    scale_y_continuous(labels = scales::percent_format(accuracy = 1)) + 
-    coord_flip() +
-    xlab("Espèce") +
-    ylab("Proportion") +
-    ggtitle(paste0("Proportion des observations 1 individu ",
-                                             "/ plusieurs individus \npour chaque espèce")) +
-    theme(title = element_text(size = 9))
-
+histo_indice_greg(df_greg_all = df_gregarite_all, color_txt = color_txt)
 ```
 
 
