@@ -3,16 +3,8 @@ image: mpretet/image_fiche_opj:4.1.2
 stages:
   - render
 
-variables:
-  R_LIBS_USER: "$CI_PROJECT_DIR/Rlibs"
-
 before_script:
   - apt-get update && apt-get install -y libmariadb-dev  # Installation des dépendances pour RMySQL
-  - R -e "install.packages(c('quarto'))"  # Installation des packages nécessaires
-
-cache:
-  paths:
-    - Rlibs/
 
 render_quarto:
   stage: render
