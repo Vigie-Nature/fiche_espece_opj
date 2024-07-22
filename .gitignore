@@ -8,7 +8,6 @@
 **/*.rds
 data/photos_angelique
 data/history/
-**/*.html
 out/graphiques/
 # Ignorer tous les fichiers .jpg
 data/photos/*.jpg
@@ -19,3 +18,6 @@ data/photos/*.png
 data/img/*
 !data/img/papillon.png
 !data/img/logo_obj_ope_papillons.png
+
+**/*.html
+!programs/accueil.html
