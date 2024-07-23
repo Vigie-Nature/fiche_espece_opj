@@ -1,6 +1,6 @@
 
 ajout_espece <- function(sp_name){
-  txt <- paste0('    <a href="../out/dashboard_espece_', sp_name, '.html">
+  txt <- paste0('    <a href="../out/maquette_espece_', sp_name, '.html">
         <img src="../data/photos/', sp_name, '.jpg", width="300", height="300", title="', sp_name, '">
     </a>
 ')
