@@ -208,13 +208,13 @@ df_freq_rel <- df_sp_ab %>%
 
 # Présence moyenne
 df_date_wm = df_sp %>%
-  filter(abondance !=0, annee != strftime(Sys.Date(), "%Y")) %>%
+  filter(abondance !=0, annee != strftime(Sys.Date()+365/2, "%Y")) %>%
   mutate(semaine = as.integer(strftime(date_collection, '%V'))) %>%
   group_by(annee) %>%
   summarise(sum_sp = weighted.mean(semaine, abondance))
 
 df_date_wm_sqrt = df_sp %>%
-  filter(abondance !=0, annee != strftime(Sys.Date(), "%Y")) %>%
+  filter(abondance !=0, annee != strftime(Sys.Date()+365/2, "%Y")) %>%
   mutate(semaine = as.integer(strftime(date_collection, '%V'))) %>%
   left_join(df_date_wm, by = c("annee" = "annee")) %>%
   mutate(minus = abondance*((semaine - sum_sp)^2) ) %>%
