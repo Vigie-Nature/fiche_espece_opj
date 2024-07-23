@@ -9,6 +9,7 @@
 data/photos_angelique
 data/history/
 **/*.html
+html/
 out/graphiques/
 # Ignorer tous les fichiers .jpg
 data/photos/*.jpg
