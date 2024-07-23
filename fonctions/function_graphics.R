@@ -78,9 +78,7 @@ gg_histo_plotly <- function(df_hp, x = "nom_espece", y = "rel_ab",
 #-------- Variations annuelles ---------#
 #########################################
 
-# Histogramme d'abondance
-
-#' Title
+#' Histogramme d'abondance
 #'
 #' @param df_histo A dataframe
 #' @param x A character (column's dataframe)
@@ -129,7 +127,25 @@ gg_histo <- function(df_histo, x = "date", y = "sum_ab",
   
 }
 
-# Graphique en courbe
+
+#' Graphique en courbe
+#'
+#' @param df_histo A dataframe
+#' @param x A character (column's dataframe)
+#' @param y A character (column's dataframe)
+#' @param ytxt A character
+#' @param dmin A date
+#' @param dmax A date
+#' @param title A character
+#'
+#' @return A ggplot object
+#'
+#' @examples
+#' data("economics")
+#' gg_line(df_line = economics, x = "date", y = "unemploy",
+#'          ytxt = "Taux de chômage",
+#'          dmin = as.Date("2000-04-01"),
+#'          dmax = as.Date("2009-04-01"))
 gg_line <- function(df_line, x = "date", y = "n",
                     xtxt = "Date de participation", ytxt = "Nombre de sessions",
                     color = "#ff795c", dmin, dmax, title = ""){
@@ -156,7 +172,21 @@ gg_line <- function(df_line, x = "date", y = "n",
     ylab(ytxt)
 }
 
-# Carte d'abondance
+#' Carte d'abondance
+#'
+#' @param shape_map A dataframe
+#' @param x A character (column's dataframe)
+#' @param y A character (column's dataframe)
+#' @param ytxt A character
+#' @param dmin A date
+#' @param dmax A date
+#' @param title A character
+#'
+#' @return A ggplot object
+#'
+#' @examples
+#' data("economics")
+#' carte_ab(shape_map, fill_map, fill_title, fill_color, fill_cat, map_title = "")
 carte_ab <- function(shape_map, fill_map, fill_title, fill_color,
                      fill_cat, map_title = ""){
   
@@ -314,7 +344,7 @@ histo_indice_greg <- function(df_greg_all, x = "nom_espece", order = "classif",
                               fill = "ab_grega", w = "prop_grega",
                               mean = "classif", sqrt = "sqrt_n",
                               lab_fill = "Grégarité",
-                              xlab = "Espèce", ylab = "Proportion",
+                              xlab = "Espèce", ylab = "Proportion des observations",
                               title = paste0("Proportion des observations 1 individu ",
                                              "/ plusieurs individus \npour chaque espèce"),
                               color_txt = "black"){
