@@ -19,7 +19,8 @@
 #------------ Observations -------------#
 #########################################
 
-#' Histogramme de proportion des abondances d'espèces
+# Histogramme de proportion des abondances d'espèces
+#' gg_histo_plotly
 #' 
 #' @param df_hp A dataframe
 #' @param x A character (column's dataframe)
@@ -78,7 +79,8 @@ gg_histo_plotly <- function(df_hp, x = "nom_espece", y = "rel_ab",
 #-------- Variations annuelles ---------#
 #########################################
 
-#' Histogramme d'abondance
+# Histogramme d'abondance
+#' gg_histo
 #'
 #' @param df_histo A dataframe
 #' @param x A character (column's dataframe)
@@ -128,7 +130,8 @@ gg_histo <- function(df_histo, x = "date", y = "sum_ab",
 }
 
 
-#' Graphique en courbe
+# Graphique en courbe
+#' gg_line
 #'
 #' @param df_histo A dataframe
 #' @param x A character (column's dataframe)
@@ -172,21 +175,27 @@ gg_line <- function(df_line, x = "date", y = "n",
     ylab(ytxt)
 }
 
-#' Carte d'abondance
+# Carte d'abondance
+#' carte_ab
 #'
-#' @param shape_map A dataframe
-#' @param x A character (column's dataframe)
-#' @param y A character (column's dataframe)
-#' @param ytxt A character
-#' @param dmin A date
-#' @param dmax A date
-#' @param title A character
+#' @param shape_map An sf object
+#' @param fill_map A qualitative vector (same length as number of rows in shape_map)
+#' @param fill_title A character
+#' @param fill_color A vector (same length as number of categories in fill_map)
+#' @param fill_cat A vector (same length as number of categories in fill_map)
+#' @param map_title A character
 #'
 #' @return A ggplot object
 #'
 #' @examples
-#' data("economics")
-#' carte_ab(shape_map, fill_map, fill_title, fill_color, fill_cat, map_title = "")
+#' # Fichier téléchargé depuis : https://www.data.gouv.fr/fr/datasets/carte-des-departements-2-1/
+#' # contour-des-departements.geojson
+#' france_hex <- read_sf("contour-des-departements.geojson")
+#' 
+#' vec_fill = rep(c("1", "2", "3"), 31)
+#' carte_ab(shape_map = france_hex, fill_map = rep(c("1", "2", "3"), 32),
+#'          fill_title = "Légende", fill_color = c("#eb59ff", "#59e6ff", "#ffdc59"),
+#'          fill_cat = c("1", "2", "3"), map_title = "Carte")
 carte_ab <- function(shape_map, fill_map, fill_title, fill_color,
                      fill_cat, map_title = ""){
   
@@ -206,6 +215,38 @@ carte_ab <- function(shape_map, fill_map, fill_title, fill_color,
 #########################################
 
 # Graphique en echarts4r
+#' aes_echarts
+#'
+#' @param plot_e An echarts4r object
+#' @param xlab A character
+#' @param ylab A character
+#' @param title A character
+#' @param line_color A vector
+#' @param one_y A boolean
+#'
+#' @return An echarts4r pbject
+#'
+#' @examples
+#' 
+#' data("economics")
+#' aes_echarts(plot_e = economics %>% 
+#'               mutate(date_dec = as.integer(strftime(date, "%Y")) %/% 10 * 10) %>%
+#'               group_by(date_dec) %>%
+#'               e_charts(date) %>%
+#'               e_line(unemploy, symbol='none'),
+#'             xlab = "Date", ylab = "Unemploy", title = "Unemploy / date",
+#'             line_color = c("purple", "blue", "green", "yellow", "orange", "red"),
+#'             one_y = FALSE)
+#' aes_echarts(plot_e = economics %>%
+#'               filter(date >= "2010-01-01") %>%
+#'               mutate(date_week = as.integer(strftime(date, "%U")),
+#'                      date_year = strftime(date, "%Y")) %>%
+#'               group_by(date_year) %>%
+#'               e_charts(date_week) %>%
+#'               e_line(unemploy, symbol='none'),
+#'             xlab = "Date", ylab = "Unemploy", title = "Unemploy / date",
+#'             line_color = c("purple", "blue", "green", "yellow", "orange", "red"),
+#'             one_y = TRUE)
 aes_echarts <- function(plot_e, xlab, ylab, title, line_color, one_y = TRUE){
   
   plot_e <- plot_e %>%
@@ -317,6 +358,23 @@ histo_ab_mean <- function(df_mg, x = "nom_espece", w = "m_abn", sd = "sd",
 }
 
 # Classes d'abondance pour l'espèce
+#' Title
+#'
+#' @param df_grega A dataframe
+#' @param x A character (column's dataframe)
+#' @param y A character (column's dataframe)
+#' @param xlab A character
+#' @param ylab A character
+#' @param title A character
+#' @param limits A character
+#'
+#' @return A ggplot object
+#'
+#' @examples
+#' 
+#' histo_grega(df_grega = data.frame(classe = c("1", "2", "3"), freq = c(0.6, 0.3, 0.1)),
+#'             x = "classe", y = "freq", xlab = "Classe", ylab = "Frequence", title = "",
+#'             limits = c("2", "1", "3"))
 histo_grega <- function(df_grega, x = "class_idv", y = "freq_prc",
                         xlab = "Nombre d'individus observés simultanément",
                         ylab = "% d'observations",
