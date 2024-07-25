@@ -429,9 +429,33 @@ histo_indice_greg <- function(df_greg_all, x = "nom_espece", order = "classif",
 #########################################
 
 # Graphiques de ratio des jardins
+#' graph_ratio_jardin
+#'
+#' @param df_jard A dataframe
+#' @param x A character (columns's dataframe)
+#' @param y A character (columns's dataframe) 
+#' @param image A character (columns's dataframe)
+#' @param signif A character (columns's dataframe)
+#' @param cat_jard A vector
+#' @param lim_y A numeric
+#' @param xlab A character
+#' @param ylab A character
+#'
+#' @return
+#' @export
+#'
+#' @examples
+#' 
+#' df_test <- data.frame(cat = c("Moyen", "Petit", "Grand"),
+#'                       ratio = c(0.3, 1.7, 0.9),
+#'                       image = "https://jeroen.github.io/images/frink.png",
+#'                       signif = c("", "*", ""))
+#' graph_ratio_jardin(df_jard = df_test, x = "cat", y = "ratio", image = "image",
+#'                    signif = "signif", cat_jard = c("Petit", "Moyen", "Grand"),
+#'                    lim_y = 2, xlab = "Catégorie", ylab = "Ratio")
 graph_ratio_jardin <- function(df_jard, x, y = "ratio", image, signif, cat_jard,
                                lim_y, xlab, ylab = "Ratio des observations"){
-  ggplot(df_tot, aes(x = !!sym(x), y = !!sym(y))) +
+  ggplot(df_jard, aes(x = !!sym(x), y = !!sym(y))) +
     geom_point() +
     geom_image(aes(image = !!sym(image)), size = 0.14) +
     geom_text(aes(x = !!sym(x), y = ratio+0.1, label = !!sym(signif)), size = 6) +
