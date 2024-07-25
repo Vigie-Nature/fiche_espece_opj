@@ -21,5 +21,5 @@ render_script:
     - Rscript programs/boucle_quarto.R
   artifacts:
     paths:
-      - out/*.Rmd
+      - *.Rmd
 

@@ -15,11 +15,11 @@ reg_dep = read.csv2("data/departements-france.csv", sep=",")
 
 #liste principale des papillons de l'observatoire
 if (Sys.getenv("CI") == "true") {
-  liste_principale <- c("Amaryllis", "Argus verts", "Belle-dame", "Citrons",
-                        "Paon du jour", "Piérides blanches", "Tabac d'Espagne", "Gazé")
+  liste_principale <- c("Amaryllis", "Argus verts", "Belle-dame")
 }else{
-  liste_principale <- c("Amaryllis", "Argus verts", "Belle-dame", "Citrons",
-                        "Paon du jour", "Piérides blanches", "Tabac d'Espagne", "Gazé")
+  liste_principale <- c("Amaryllis", "Argus verts", "Belle-dame")
+  # liste_principale <- c("Amaryllis", "Argus verts", "Belle-dame", "Citrons",
+  #                       "Paon du jour", "Piérides blanches", "Tabac d'Espagne", "Gazé")
   # liste_principale <- c("Amaryllis", "Argus verts", "Aurores", "Belle-dame",
   #                       "Brun des pélargoniums", "Citrons", "Cuivré",
   #                       "Demi-deuils", "Flambés", "Gazé", "Hespérides orangées",
