@@ -428,7 +428,23 @@ histo_indice_greg <- function(df_greg_all, x = "nom_espece", order = "classif",
 #-------------- Jardins ----------------#
 #########################################
 
-# Hitogrammes des jardins
+# Graphiques de ratio des jardins
+graph_ratio_jardin <- function(df_jard, x, y = "ratio", image, signif, cat_jard,
+                               lim_y, xlab, ylab = "Ratio des observations"){
+  ggplot(df_tot, aes(x = !!sym(x), y = !!sym(y))) +
+    geom_point() +
+    geom_image(aes(image = !!sym(image)), size = 0.14) +
+    geom_text(aes(x = !!sym(x), y = ratio+0.1, label = !!sym(signif)), size = 6) +
+    annotate("rect",xmin = -Inf, xmax = Inf, ymin = 1, ymax = Inf, alpha = 0.1, fill = "#59d7ff") +
+    annotate("rect",xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = 1, alpha = 0.1, fill = "red") +
+    scale_x_discrete(limits=cat_jard) +
+    scale_y_continuous(limits = c(0, lim_y)) +
+    xlab(xlab) +
+    ylab(ylab) +
+    theme_cowplot()
+}
+
+# Histogrammes des jardins
 histo_jardin <- function(df_jard, x, y = "nobs", fill = "type",
                          limits_x, val_fill, xlab, ylab = "% des observations",
                          title=paste0("% des observations dans une catégorie ",
