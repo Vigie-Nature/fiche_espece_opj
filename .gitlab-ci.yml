@@ -10,7 +10,7 @@ before_script:
 render_quarto:
   stage: render
   script:
-    - quarto render maquette_espece.qmd -P sp_name="Amaryllis"  # Commande pour rendre le document Quarto
+    - quarto render maquette_espece.qmd # Commande pour rendre le document Quarto
   artifacts:
     paths:
       - maquette_espece.html  # Spécifiez le chemin de sortie du rendu Quarto
