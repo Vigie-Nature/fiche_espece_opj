@@ -1,25 +1,26 @@
 image: mpretet/image_fiche_opj:4.1.2
 
 stages:
-  - render
+  # - render
   - script_R
 
 before_script:
   - apt-get update && apt-get install -y libmariadb-dev  # Installation des dépendances pour RMySQL
 
-render_quarto:
-  stage: render
-  script:
-    - quarto render maquette_espece.qmd # Commande pour rendre le document Quarto
-  artifacts:
-    paths:
-      - maquette_espece.html  # Spécifiez le chemin de sortie du rendu Quarto
+# render_quarto:
+#   stage: render
+#   script:
+#     - quarto render maquette_espece.qmd # Commande pour rendre le document Quarto
+#   artifacts:
+#     paths:
+#       - maquette_espece.html  # Spécifiez le chemin de sortie du rendu Quarto
       
 render_script:
   stage: script_R
   script:
     - Rscript programs/boucle_quarto.R
+    - tar -czf reports.tar.gz maquette*.Rmd
   artifacts:
     paths:
-      - maquette*.html
+      - reports.tar.gz
 
