@@ -19,7 +19,8 @@ render_script:
   stage: script_R
   script:
     - Rscript programs/boucle_quarto.R
+    - tar -czf reports.tar.gz *.Rmd
   artifacts:
     paths:
-      - *.Rmd
+      - reports.tar.gz
 
