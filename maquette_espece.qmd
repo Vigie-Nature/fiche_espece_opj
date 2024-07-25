@@ -20,11 +20,7 @@ execute:
 
 ```{r}
 # Variables constantes
-if (Sys.getenv("CI") == "true") {
-  sp_name = "Amaryllis"
-}else{
-  sp_name = params$sp_name
-}
+sp_name = "Amaryllis"
 source("fonctions/var.R")
 ```
 
