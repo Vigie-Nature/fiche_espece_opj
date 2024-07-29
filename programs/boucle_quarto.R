@@ -74,14 +74,14 @@ tryCatch({
   # Boucle sur les noms d'espèces
   for (sp_name in unique(df_sp_for_names$nom_espece)) {
     filename = paste0("maquette_espece_", sp_name, ".html")
+    
     quarto_render(input = "maquette_espece.qmd",
                   execute_params = list("sp_name" = sp_name),
                   output_file = filename)
     
-    file.copy(from = filename,
-              to = paste0("out/", filename), overwrite = TRUE)
-    file.remove(filename)
+    file.rename(filename, file.path("out", filename))
   }
+  
   print(Sys.time() - time)
   message("Fin boucle")
 }, error = function(e) {
