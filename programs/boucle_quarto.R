@@ -83,7 +83,7 @@ for (sp_name in unique(df_sp_for_names$nom_espece)) {
     file.rename(filename, file.path("out", filename))
   
   }, error = function(e) {
-    message(sprintf("Error rendering document_%d.qmd: %s", sp_name, e$message))
+    message(sprintf("Error rendering document_%s.qmd: %s", sp_name, e$message))
   })
   
 }
