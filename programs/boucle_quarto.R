@@ -77,8 +77,7 @@ for (sp_name in unique(df_sp_for_names$nom_espece)) {
     
     quarto_render(input = "maquette_espece.qmd",
                   execute_params = list("sp_name" = sp_name),
-                  output_file = filename,
-                  options = list(log_level = "debug"))
+                  output_file = filename)
     
     file.rename(filename, file.path("out", filename))
   
