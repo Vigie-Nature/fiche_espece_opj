@@ -20,7 +20,7 @@ execute:
 
 ```{r}
 # Variables constantes
-sp_name = "Amaryllis"
+sp_name = params$sp_name
 source("fonctions/var.R")
 ```
 
