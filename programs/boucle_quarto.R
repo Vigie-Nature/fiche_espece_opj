@@ -68,26 +68,29 @@ tryCatch({
 # }
 # print(Sys.time() - time)
 
-tryCatch({
-  message("Début boucle")
-  time = Sys.time()
-  # Boucle sur les noms d'espèces
-  for (sp_name in unique(df_sp_for_names$nom_espece)) {
+time = Sys.time()
+# Boucle sur les noms d'espèces
+for (sp_name in unique(df_sp_for_names$nom_espece)) {
+  
+  tryCatch({
     filename = paste0("maquette_espece_", sp_name, ".html")
     
     quarto_render(input = "maquette_espece.qmd",
                   execute_params = list("sp_name" = sp_name),
-                  output_file = filename)
+                  output_file = filename,
+                  options = list(log_level = "debug"))
     
     file.rename(filename, file.path("out", filename))
-  }
   
-  print(Sys.time() - time)
-  message("Fin boucle")
-}, error = function(e) {
-  message("Erreur : ", e$message)
-  cli::cli_abort("Erreur détectée : {e$message}")
-})
+  }, error = function(e) {
+    message(sprintf("Error rendering document_%d.qmd: %s", i, e$message))
+  })
+  
+}
+  
+print(Sys.time() - time)
+
+
 # time = Sys.time()
 # # Boucle sur les noms d'espèces
 # for (sp_name in unique(df_sp_for_names$nom_espece)) {
