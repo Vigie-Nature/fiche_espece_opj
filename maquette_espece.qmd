@@ -51,8 +51,12 @@ source("fonctions/create_df_one_sp.R")
 ### Photo {height="70%"}
 
 ```{r}
-file_img = paste0("data/photos/", sp_name, ".jpg")
-image_read(file_img)
+if (file.exists(paste0("data/photos/", sp_name, ".jpg"))) {
+  file_img = paste0("data/photos/", sp_name, ".jpg")
+  image_read(file_img)
+}else{
+  print("Photographie")
+}
 ```
 
 ### Logo  {height="30%"}
