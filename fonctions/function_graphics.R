@@ -43,18 +43,34 @@ gg_histo_plotly <- function(df_hp, x = "nom_espece", y = "rel_ab",
                             fill = "nom_espece", 
                             title = "Proportion d'abondance de chaque espèce parmi toutes les observations", 
                             ytxt = "% d'abondance",
-                            limits, couleur){
+                            limits, couleur, percent = TRUE){
   
-  gg = df_hp %>%
-    ggplot() +
-    # On effectue un mapping selon les colonnes x et y, et on colore les
-    # histogrammes selon la colonne fill
-    geom_bar(mapping = aes(x = !!sym(x), y = !!sym(y), fill = !!sym(fill),
-                           # On ajoute un argument 'text" pour ggplotly
-                           # ("x" : "y" [au format % avec une précision au centième 12.9062 -> 12.91])
-                           text = paste0(!!sym(x), " : ",
-                                         scales::percent(!!sym(y), accuracy = 0.01))),
-             stat = "identity") +
+  if (percent) {
+    gg <- df_hp %>%
+      ggplot() +
+      # On effectue un mapping selon les colonnes x et y, et on colore les
+      # histogrammes selon la colonne fill
+      geom_bar(mapping = aes(x = !!sym(x), y = !!sym(y), fill = !!sym(fill),
+                             # On ajoute un argument 'text" pour ggplotly
+                             # ("x" : "y" [au format % avec une précision au centième 12.9062 -> 12.91])
+                             text = paste0(!!sym(x), " : ",
+                                           scales::percent(!!sym(y), accuracy = 0.01))),
+               stat = "identity") +
+      # Mise de l'axe y au format % en précision 1 (21.2% -> 21%)
+      scale_y_continuous(labels = scales::percent_format(accuracy = 1))
+  }else{
+    gg <- df_hp %>%
+      ggplot() +
+      # On effectue un mapping selon les colonnes x et y, et on colore les
+      # histogrammes selon la colonne fill
+      geom_bar(mapping = aes(x = !!sym(x), y = !!sym(y), fill = !!sym(fill),
+                             # On ajoute un argument 'text" pour ggplotly
+                             # ("x" : "y" [pas de format])
+                             text = paste0(!!sym(x), " : ", !!sym(y))),
+               stat = "identity")
+  }
+  
+  gg = gg +
     scale_x_discrete(limits=limits) +       # Fonction pour ordonner l'axe x
     ylab(ytxt) +
     ggtitle(title) +
@@ -65,8 +81,6 @@ gg_histo_plotly <- function(df_hp, x = "nom_espece", y = "rel_ab",
     # Fonction pour colorer les histogrammes selon des valeurs choisies (dans le même ordre que l'axe x)
     scale_fill_manual(breaks = limits,
                       values = couleur) +
-    # Mise de l'axe y au format % en précision 1 (21.2% -> 21%)
-    scale_y_continuous(labels = scales::percent_format(accuracy = 1)) + 
     # Inversion des axes x et y pour que les histogrammes soient horizontaux
     coord_flip()
   
