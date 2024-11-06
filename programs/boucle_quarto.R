@@ -57,9 +57,9 @@ time = Sys.time()
 for (sp_name in unique(df_sp_for_names$nom_espece)) {
   
   tryCatch({
-    filename = paste0("maquette_espece_", sp_name, ".html")
+    filename = paste0("maquette_espece_page_", sp_name, ".html")
     
-    quarto_render(input = "maquette_espece.qmd",
+    quarto_render(input = "maquette_espece_page.qmd",
                   execute_params = list("sp_name" = sp_name),
                   output_file = filename)
     
