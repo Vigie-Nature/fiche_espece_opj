@@ -101,6 +101,8 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 ```{r}
 gg_histo_plotly(df_hp = df_repartition, limits = df_repartition$nom_espece,
                 couleur = df_repartition$couleur)
+
+# print("plotly repartition espece")
 ```
 
 # Cartographie {orientation="columns"}
@@ -172,24 +174,9 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 
 ## Indicateurs relatifs {width="70%"}
 
-:::panel-tabset
-### Abondance relative
 ```{r}
 colfunc <- colorRampPalette(c("#a4dbff", "#0b6cab"))
 vec_col = c(colfunc(length(unique(df_sp$annee))-1), "#f40b0b")
-```
-
-
-```{r}
-aes_echarts(plot_e = df_ab_rel %>%
-              select(!date_collection) %>%
-              group_by(annee) %>%
-              e_charts(num_semaine) %>%
-              e_line(sum_ab_rel, symbol='none'),
-            xlab = "Semaine de participation",
-            ylab = "Indice d'abondance",
-            title = "Abondance relative par participation chaque semaine",
-            line_color = vec_col)
 ```
 
 ### Phénologie
@@ -201,9 +188,10 @@ aes_echarts(plot_e = df_freq_rel %>%
             ylab = "Fréquence relative",
             title = "Nombre d'observations par jardin chaque semaine selon les années",
             line_color = vec_col)
+
+# print("Echarts phénologie")
 ```
 
-:::
 
 ## Texte {width="30%"}
 
