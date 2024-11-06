@@ -50,23 +50,7 @@ tryCatch({
   message("Erreur : ", e$message)
   cli::cli_abort("Erreur détectée : {e$message}")
 })
-  
 
-
-
-# time = Sys.time()
-# # Boucle sur les noms d'espèces
-# for (sp_name in unique(df_sp_for_names$nom_espece)) {
-#   filename = paste0("dashboard_espece_", sp_name, ".html")
-#   quarto_render(input = "dashboard_espece.qmd",
-#                 execute_params = list("sp_name" = sp_name),
-#                 output_file = filename)
-# 
-#   file.copy(from = filename,
-#             to = paste0("out/", filename), overwrite = TRUE)
-#   file.remove(filename)
-# }
-# print(Sys.time() - time)
 
 time = Sys.time()
 # Boucle sur les noms d'espèces
@@ -89,22 +73,5 @@ for (sp_name in unique(df_sp_for_names$nom_espece)) {
   
 print(Sys.time() - time)
 
-
-# time = Sys.time()
-# # Boucle sur les noms d'espèces
-# for (sp_name in unique(df_sp_for_names$nom_espece)) {
-#   filename = paste0("fiche_espece_", sp_name, ".html")
-#   quarto_render(input = "fiche_espece.qmd",
-#                 execute_params = list("sp_name" = sp_name),
-#                 output_file = filename)
-#   
-#   file.copy(from = filename,
-#             to = paste0("out/", filename), overwrite = TRUE)
-#   file.remove(filename)
-# }
-# print(Sys.time() - time)
-
-# Générer le fichier html
-# generate_html(sort(unique(df_sp_for_names$nom_espece)))
 
 
