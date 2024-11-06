@@ -22,4 +22,5 @@ render_script:
   artifacts:
     paths:
       - out/
+    expire_in: 30 days
 
