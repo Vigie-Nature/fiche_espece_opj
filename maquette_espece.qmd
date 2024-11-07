@@ -26,7 +26,7 @@ source("fonctions/var.R")
 
 <!-- ####################################################################### -->
 
-# `{r} params$sp_name` {orientation="columns"}
+# `r params$sp_name` {orientation="columns"}
 
 ```{r}
 # Librairies
@@ -81,18 +81,18 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 ::: {.valuebox icon="eye" color="#ced600"}
 Nombre de fois où au moins un individu a été observé :
 
-`{r} paste0(label_number(accuracy = 10)(nb_obs_idv), " sur ", label_number(accuracy = 10)(nrow(df_sp)), " observations")`
+`r paste0(label_number(accuracy = 10)(nb_obs_idv), " sur ", label_number(accuracy = 10)(nrow(df_sp)), " observations")`
 :::
 
 ### Infobulle
 
 ::: {.valuebox icon=none color="#5bbdd6"}
-Les participants ont compté `{r} paste0(label_number(accuracy = 10)(nb_idv_cpt), " ", sp_name, " sur les ", label_number(accuracy = 10)(sum(df_all_sp$abondance)), " papillons au total.")`
+Les participants ont compté `r paste0(label_number(accuracy = 10)(nb_idv_cpt), " ", sp_name, " sur les ", label_number(accuracy = 10)(sum(df_all_sp$abondance)), " papillons au total.")`
 :::
 
 ### Explication {width="60%"}
 
-Classement : `{r} paste0(which(rev(df_repartition$nom_espece) == sp_name), "/", length(df_repartition$nom_espece))`
+Classement : `r paste0(which(rev(df_repartition$nom_espece) == sp_name), "/", length(df_repartition$nom_espece))`
 
 Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
 
