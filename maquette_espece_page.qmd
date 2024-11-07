@@ -26,7 +26,7 @@ source("fonctions/var.R")
 
 <!-- ####################################################################### -->
 
-# `{r} params$sp_name` {orientation="columns"}
+# `r params$sp_name` {orientation="columns"}
 
 ```{r}
 # Librairies
@@ -213,7 +213,7 @@ histo_grega(df_grega = df_gregarite,
 
 ### Indice de grégarité par espèce
 ```{r}
-names_grega = unique(df_gregarite_all %>% arrange(classif) %>% select(nom_espece) %>% as.vector())
+names_grega = unique(df_gregarite_all %>% arrange(classif) %>% select(nom_espece) %>% as.data.frame())
 color_txt = rep("black", length(names_grega$nom_espece))
 position_sp = which(unique(names_grega$nom_espece) == sp_name)
 color_txt[position_sp] = "red"
