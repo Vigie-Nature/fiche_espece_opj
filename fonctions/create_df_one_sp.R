@@ -68,8 +68,7 @@ nb_jardin_obs = length(unique(df_sp_ab$jardin_id))
 # Abondance maximale (calculée en groupant sur les années et les départements)
 nb_max_ab = df_sp %>%
   group_by(annee, nom_departement, nom_region) %>%
-  summarise(sum_ab = sum(abondance)) %>%
-  ungroup() %>%
+  summarise(sum_ab = sum(abondance), .groups = 'drop') %>%
   filter(sum_ab == max(sum_ab)) %>%
   as.data.frame()
 
@@ -84,7 +83,7 @@ df_dep = df_sp %>%
   group_by(dept_code) %>%
   summarise(n = sum(abondance),
             nb_participation = n_distinct(participation_id),
-            nb_jard = n_distinct(jardin_id)) %>%
+            nb_jard = n_distinct(jardin_id), .groups = 'drop') %>%
   mutate(ab_moy = n/nb_jard,
          ab_rel = n/nb_participation,
          cl_ab = case_when(n == 0 ~ "0",
@@ -127,7 +126,8 @@ nb_idv_cpt = sum(df_sp_ab$abondance)
 df_repartition = df_all_sp %>% 
   group_by(nom_espece) %>% 
   summarise(sum_ab = sum(abondance),
-            rel_ab = sum(abondance)/sum(df_all_sp$abondance)) %>%
+            rel_ab = sum(abondance)/sum(df_all_sp$abondance),
+            .groups = 'drop') %>%
   arrange(sum_ab) %>%
   mutate(couleur = c(rep("#3138cc", 10), rep("#6893fc", 9), rep("#90d3ff", 9)),
          couleur = if_else(nom_espece == sp_name, color_flag, couleur))
@@ -144,7 +144,8 @@ df_repartition = df_all_sp %>%
 df_nb_obs_date <- df_sp %>%
   mutate(date = as.Date(date_collection)) %>%
   group_by(date) %>%
-  summarise(n = n()) %>%
+  summarise(n = n(),
+            .groups = 'drop') %>%
   arrange(date)
 
 #----- Abondance moyenne par département -----#
@@ -153,7 +154,8 @@ df_nb_obs_date <- df_sp %>%
 df_dep_y = df_sp %>% 
   group_by(dept_code, annee) %>%
   summarise(n = sum(abondance),
-            nb_jard = n_distinct(jardin_id)) %>%
+            nb_jard = n_distinct(jardin_id),
+            .groups = 'drop') %>%
   mutate(ab_moy = n/nb_jard,
          cl_ab = case_when(n == 0 ~ "0",
                            n >= 1 & n <= 25 ~ "1-25",
@@ -179,13 +181,15 @@ cat_carte_moy = c("0", "0-1", "2-5", "6-10", "+ de 10")
 nb_part_par_sem = df_all_sp %>%
   mutate(num_semaine = as.integer(num_semaine)) %>%
   group_by(annee, num_semaine) %>%
-  summarise(nb_part = n_distinct(participation_id))
+  summarise(nb_part = n_distinct(participation_id),
+            .groups = 'drop')
 
 # Abondance relative
 df_ab_rel <- df_sp %>%
   mutate(num_semaine = as.integer(num_semaine)) %>%
   group_by(annee, num_semaine, date_collection) %>%
-  summarise(sum_ab = sum(abondance)) %>%        # Somme des abondances
+  summarise(sum_ab = sum(abondance),
+            .groups = 'drop') %>%        # Somme des abondances
   left_join(nb_part_par_sem, by = c("annee" = "annee",
                                     "num_semaine" = "num_semaine")) %>%
   mutate(sum_ab_rel = sum_ab/nb_part) %>%  # Division par le nombre de participations
@@ -200,7 +204,8 @@ df_ab_rel <- df_sp %>%
 df_freq_rel <- df_sp_ab %>%
   mutate(num_semaine = as.integer(num_semaine)) %>%
   group_by(annee, num_semaine) %>%
-  summarise(sum_obs = n()) %>%       # Somme des observations
+  summarise(sum_obs = n(),
+            .groups = 'drop') %>%       # Somme des observations
   full_join(nb_part_par_sem, by = c("annee" = "annee",
                                     "num_semaine" = "num_semaine")) %>%
   mutate(freq_rel = if_else(is.na(sum_obs), 0, sum_obs/nb_part)) %>%   # Division par le nombre de participations
@@ -211,7 +216,7 @@ df_date_wm = df_sp %>%
   filter(abondance !=0, annee != strftime(Sys.Date()+365/2, "%Y")) %>%
   mutate(semaine = as.integer(strftime(date_collection, '%V'))) %>%
   group_by(annee) %>%
-  summarise(sum_sp = weighted.mean(semaine, abondance))
+  summarise(sum_sp = weighted.mean(semaine, abondance), .groups = 'drop')
 
 df_date_wm_sqrt = df_sp %>%
   filter(abondance !=0, annee != strftime(Sys.Date()+365/2, "%Y")) %>%
@@ -220,7 +225,7 @@ df_date_wm_sqrt = df_sp %>%
   mutate(minus = abondance*((semaine - sum_sp)^2) ) %>%
   group_by(annee, sum_sp) %>%
   summarise(sum_minus = sum(minus), 
-            n = n()) %>%
+            n = n(), .groups = 'drop') %>%
   mutate(rmse = sqrt(sum_minus/n))
 
 #########################################
@@ -231,7 +236,8 @@ df_date_wm_sqrt = df_sp %>%
 df_moyenne_greg = df_all_sp %>%
   filter(abondance!= 0) %>%
   group_by(nom_espece) %>%
-  summarise(m_abn = mean(abondance), n = n()) %>%
+  summarise(m_abn = mean(abondance), n = n(),
+            .groups = 'drop') %>%
   mutate(sd = 1.96*sqrt(m_abn/n)) %>%
   arrange(desc(m_abn)) %>%
   as.data.frame()
@@ -251,7 +257,7 @@ df_gregarite_all = df_all_sp %>%
   mutate(ab_grega = factor(if_else(abondance == 1, "1 individu", "+ de 1 individu"),
                            levels = c("1 individu", "+ de 1 individu"))) %>%
   group_by(nom_espece, ab_grega) %>%
-  summarise(n = n()) %>%
+  summarise(n = n(), .groups = 'drop') %>%
   group_by(nom_espece) %>%
   mutate(sum_n = sum(n)) %>%
   ungroup() %>%
@@ -302,7 +308,7 @@ lst_param = list(bois, champ, prairie, environnement)
 # Df des jardins positionnés sur la carte
 df_jardin_point = df_sp %>%
   group_by(jardin_id, latitude, longitude) %>%
-  summarise(sum_ab = sum(abondance)) %>%
+  summarise(sum_ab = sum(abondance), .groups = 'drop') %>%
   filter(!is.na(latitude)) %>%
   mutate(Présence = if_else(sum_ab == 0, "Espèce non observée", "Espèce observée"),
          alpha = if_else(sum_ab == 0, 0.7, 1)) %>%
@@ -315,16 +321,15 @@ bary_function <- function(df,
   
   df <- df %>%
     group_by(!!!syms(gb1)) %>%     # On groupe selon les paramètres de gb1
-    summarise(sum_ab = sum(abondance)) %>%
+    summarise(sum_ab = sum(abondance), .groups = 'drop') %>%
     filter(!is.na(latitude)) %>%
-    ungroup() %>%
     mutate(lat_pond = latitude*sum_ab,          # Calcul des latitudes et
            long_pond = longitude*sum_ab) %>%    # longitudes pondérées
     group_by(!!!syms(gb2)) %>%           # On groupe selon les paramètres de gb2
     # Pour chaque année, on somme les latitudes et longitudes pondérées
     # et l'abondance totale
     summarise(across(matches("*_pond"), \(x) sum(x, na.rm = TRUE)),
-              across(matches("sum_ab"), sum)) %>%
+              across(matches("sum_ab"), sum), .groups = 'drop') %>%
     # On divise la latitude et la longitude pondérée de chaque année par 
     # la pondération (donc la somme des abondances)
     mutate(latitude = lat_pond/sum_ab,
@@ -336,14 +341,14 @@ bary_function <- function(df,
 # Df barycentre de tous les jardins chaque année
 df_bary_base<- df_all_sp %>%
   group_by(annee, jardin_id, latitude, longitude) %>%
-  summarise(sum_ab = n()) %>%
+  summarise(sum_ab = n(), .groups = 'drop') %>%
   filter(!is.na(latitude)) %>%
   ungroup() %>%
   mutate(lat_pond = latitude*sum_ab,
          long_pond = longitude*sum_ab) %>%
   group_by(annee) %>%
   summarise(across(matches("*_pond"), \(x) sum(x, na.rm = TRUE)),
-            across(matches("sum_ab"), sum)) %>%
+            across(matches("sum_ab"), sum), .groups = 'drop') %>%
   mutate(latitude = lat_pond/sum_ab,
          longitude = long_pond/sum_ab,
          nom_espece = "Jardins",
@@ -413,7 +418,7 @@ vec_name = c(sp_name, (df_oui %>% arrange(desc(corr)))$nom[1:5])
 df_coocc = df_all_sp %>%
   filter(nom_espece %in% vec_name) %>%
     group_by(nom_espece, an_sem) %>%
-    summarise(sum_ab = sum(abondance)) %>%
+    summarise(sum_ab = sum(abondance), .groups = 'drop') %>%
     group_by(nom_espece) %>%
     mutate(sum_sp = sum(sum_ab),
            sum_ab_norm = sum_ab/sum_sp,
@@ -425,7 +430,7 @@ df_coocc = df_all_sp %>%
 df_nbsp_all = df_all_sp %>%
   filter(abondance != 0) %>%
   group_by(nom_espece) %>%
-  summarise(n = n())
+  summarise(n = n(), .groups = 'drop')
 
 if (file.exists("data/rdata/df_heatmap.rds") &
     Sys.Date()-as.Date(file.info("data/rdata/df_heatmap.rds")$ctime) <= 1) {
@@ -469,7 +474,7 @@ df_histo_test = df_all_sp %>%
                                      abondance > 9 ~ "+ de 10"),
                            levels = c("1", "2 à 4", "5 à 9", "+ de 10"))) %>%
   group_by(nom_espece, ab_grega) %>%
-  summarise(n = n()) %>%
+  summarise(n = n(), .groups = 'drop') %>%
   group_by(nom_espece) %>%
   mutate(sum_n = sum(n)) %>%
   ungroup() %>%
