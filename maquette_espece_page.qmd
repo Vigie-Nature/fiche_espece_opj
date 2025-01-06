@@ -134,7 +134,7 @@ carte_point_jardin(france = france, df_jp = df_jardin_point,
                                   strftime(max(df_sp$date_collection), "%Y")))
 ```
 
-* **Titre** : Carte des jardins participants à l’Opéraion papillons ayant observé l’espèce au moins une fois
+* **Titre** : Carte des jardins participants à l’Opération papillons ayant observé l’espèce au moins une fois
 
 * **Explication** : Où observe-t-on cette espèce ? Chaque point sur la carte représente un jardin participant à l’Opération papillons. Les points rouges représentent les jardins où l’espèce n’a pas été observée, et les points verts représentent les jardins ayant observé au moins une fois cette espèce. 
 
@@ -212,6 +212,7 @@ vec_col = c(colfunc(length(unique(df_sp$annee))-1), "#f40b0b")
 ### Phénologie
 ```{r}
 aes_echarts(plot_e = df_freq_rel %>%
+              group_by(annee) %>%
               e_charts(num_semaine) %>%
               e_line(freq_rel, symbol='none'),
             xlab = "Semaine de participation",
