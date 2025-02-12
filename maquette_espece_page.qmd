@@ -22,6 +22,7 @@ execute:
 # Variables constantes
 sp_name = params$sp_name
 source("fonctions/var.R")
+is.histo = FALSE
 ```
 
 <!-- ####################################################################### -->
@@ -40,7 +41,7 @@ if (Sys.getenv("CI") != "true") {
 source("fonctions/function_graphics.R")
 source("fonctions/function_import_from_mosaic.R")
 # Création des data frame
-source("fonctions/create_df_all_sp.R")
+source("fonctions/create_df_opj.R")
 source("fonctions/create_df_one_sp.R")
 ```
 
@@ -83,7 +84,7 @@ Nombre de fois où au moins un individu a été observé :
 ## Infobulle 2 (abondance)
 
 ::: {.valuebox icon=none color="#5bbdd6"}
-Les participants ont compté `r paste0(label_number(accuracy = 10)(nb_idv_cpt), " ", sp_name, " sur les ", label_number(accuracy = 10)(sum(df_all_sp$abondance)), " papillons au total.")`
+Les participants ont compté `r paste0(label_number(accuracy = 10)(nb_idv_cpt), " ", sp_name, " sur les ", label_number(accuracy = 10)(sum(df_opj$abondance)), " papillons au total.")`
 :::
 
 

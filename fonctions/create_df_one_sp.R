@@ -22,33 +22,73 @@ if (!exists("sp_name")) {
   sp_name = "Amaryllis"
 }
 
+if (!exists("is.histo")) {
+  is.histo = FALSE
+}
+
 #########################################
 #---------- Dataframe initial ----------#
 #########################################
 
 # Df de toutes les espèces
-if (!exists("df_all_sp")) {
-  source("fonctions/create_df_all_sp.R")
+if (!exists("df_opj")) {
+  source("fonctions/create_df_opj.R")
 }
 
-df_all_sp = df_all_sp %>%
+df_opj = df_opj %>%
   filter(!is.na(dept_code),         # suppression des départements nuls
          str_length(dept_code)==2,  # suppression des drom-com
          annee >= 2019,
          nom_espece %in% liste_principale) %>%         # suppression des données avant 2019
-  mutate(an_sem = if_else(as.numeric(num_semaine) < 10,
+  mutate(date = as.Date(date_collection),
+         an_sem = if_else(as.numeric(num_semaine) < 10,
                           paste0(annee, "-S0", num_semaine),
                           paste0(annee, "-S", num_semaine))) %>%
   left_join(reg_dep, by = c("dept_code" = "code_departement")) # ajout des départements
 
 # Df de l'historique
-if (file.exists("data/history/donnees_opj_hebdo_ok.csv")) {
-  df_history = read.csv2(file = "data/history/donnees_opj_hebdo_ok.csv",
-                         header = F, encoding = "latin-1")
+if (is.histo) {
+  df_old_data = readRDS(file = "data/rdata/df_old_data.rds")
+  df_opj = bind_rows(df_opj, df_old_data)
+  rm("df_old_data")
+  
+  df_opj_new = df_opj %>%
+    filter(annee >= 2019)
+  
+  df_opj_old = df_opj %>%
+    filter(annee < 2019)
+  
+  df_sp_new = df_opj_new %>%
+    filter(nom_espece == sp_name)
+  
+  df_sp_old = df_opj_old %>%
+    filter(nom_espece == sp_name)
+  
+  df_sp_ab_new = df_sp_new %>%
+    filter(abondance != 0)
+  
+  df_sp_ab_old = df_sp_old %>%
+    filter(abondance != 0)
+}else{
+  df_opj_new = df_opj 
+  
+  df_opj_old = df_opj 
+  
+  df_sp_new = df_opj %>%
+    filter(nom_espece == sp_name)
+  
+  df_sp_old = df_opj %>%
+    filter(nom_espece == sp_name)
+  
+  df_sp_ab_new = df_sp %>%
+    filter(abondance != 0)
+  
+  df_sp_ab_old = df_sp %>%
+    filter(abondance != 0)
 }
 
 # Df d'une espèce
-df_sp = df_all_sp %>%
+df_sp = df_opj %>%
   filter(nom_espece == sp_name)
 
 df_sp_ab = df_sp %>%
@@ -62,7 +102,7 @@ france <- read_sf(paste0("carte/contour-des-departements.geojson"))
 #########################################
 
 # Nombre de jardins participant aux observations
-nb_jardin = length(unique(df_all_sp$jardin_id))
+nb_jardin = length(unique(df_opj$jardin_id))
 # Nombre de jardins où un individu a été observé
 nb_jardin_obs = length(unique(df_sp_ab$jardin_id))
 # Abondance maximale (calculée en groupant sur les années et les départements)
@@ -78,35 +118,57 @@ nb_max_ab = df_sp %>%
 
 #----- Carte d'abondance -----#
 
-# Df abondance sur toutes les données
-df_dep = df_sp %>% 
-  group_by(dept_code) %>%
-  summarise(n = sum(abondance),
-            nb_participation = n_distinct(participation_id),
-            nb_jard = n_distinct(jardin_id), .groups = 'drop') %>%
-  mutate(ab_moy = n/nb_jard,
-         ab_rel = n/nb_participation,
-         cl_ab = case_when(n == 0 ~ "0",
-                           n > 0 & n <= 50 ~ "1-50",
-                           n > 50 & n <= 100 ~ "51-100",
-                           n > 100 & n <= 300 ~ "101-300",
-                           n > 300 & n <= 500 ~ "301-500",
-                           n > 500 ~ "+ de 500"),
-         cl_moy = case_when(ab_moy == 0 ~ "0",
-                            ab_moy > 0 & ab_moy <= 2 ~ "1-2",
-                            ab_moy > 2 & ab_moy <= 5 ~ "3-5",
-                            ab_moy > 5 & ab_moy <= 10 ~ "6-10",
-                            ab_moy > 10 ~ "+ de 10"),
-         cl_qual = case_when(ab_rel == 0 ~ "Pas de détection",
-                             ab_rel > 0 & ab_rel <= 0.2 ~ "Peu abondant",
-                             ab_rel > 0.2 & ab_rel <= 0.4 ~ "Abondant",
-                             ab_rel > 0.4 & ab_rel <= 0.6 ~ "Très abondant",
-                             ab_rel > 0.6 ~ "Extrêmement abondant")) 
+# Df abondance sur toutes les données (all_data)
+# fct df abondance
+fct_df_abondance <- function(df){
+  return(df_abondance <- df %>% 
+    filter(!is.na(jardin_id)) %>%
+    group_by(dept_code) %>%
+    summarise(n = sum(abondance),
+              nb_participation = n_distinct(participation_id),
+              nb_jard = n_distinct(jardin_id),
+              nb_j_nul = sum(sapply(split(abondance, jardin_id),
+                                    function(x) all(x == 0))),
+              nb_j_non_nul = sum(sapply(split(abondance, jardin_id),
+                                    function(x) any(x > 0))),
+              .groups = 'drop') %>%
+    mutate(ab_moy = n/nb_jard,
+           ab_rel = n/nb_participation,
+           prc_vu = nb_j_non_nul / nb_jard,
+           cl_ab = case_when(n == 0 ~ "0",
+                             n > 0 & n <= 50 ~ "1-50",
+                             n > 50 & n <= 100 ~ "51-100",
+                             n > 100 & n <= 300 ~ "101-300",
+                             n > 300 & n <= 500 ~ "301-500",
+                             n > 500 ~ "+ de 500"),
+           cl_moy = case_when(ab_moy == 0 ~ "0",
+                              ab_moy > 0 & ab_moy <= 2 ~ "1-2",
+                              ab_moy > 2 & ab_moy <= 5 ~ "3-5",
+                              ab_moy > 5 & ab_moy <= 10 ~ "6-10",
+                              ab_moy > 10 ~ "+ de 10"),
+           cl_qual = case_when(ab_rel == 0 ~ "Pas de détection",
+                               ab_rel > 0 & ab_rel <= 0.2 ~ "Peu abondant",
+                               ab_rel > 0.2 & ab_rel <= 0.4 ~ "Abondant",
+                               ab_rel > 0.4 & ab_rel <= 0.6 ~ "Très abondant",
+                               ab_rel > 0.6 ~ "Extrêmement abondant"),
+           cl_jard = case_when(prc_vu == 0 ~ "0%",
+                               prc_vu > 0 & prc_vu <= 0.2 ~ "0%-20%",
+                               prc_vu > 0.2 & prc_vu <= 0.4 ~ "20%-40%",
+                               prc_vu > 0.4 & prc_vu <= 0.6 ~ "40%-60%",
+                               prc_vu > 0.6 ~ "60%-100%")) )
+}
+
+df_dep = fct_df_abondance(df = df_sp)
+df_dep_old = fct_df_abondance(df = df_sp_old)
+df_dep_new = fct_df_abondance(df = df_sp_new)
 
 df_dep = df_dep[c(1:6, 29:30, 7:28, 31:96),]
+df_dep_old = df_dep_old[c(1:6, 29:30, 7:28, 31:96),]
+df_dep_new = df_dep_new[c(1:6, 29:30, 7:28, 31:96),]
 
 cat_carte_all = c("0", "1-50", "51-100", "101-300", "301-500", "+ de 500")
 cat_carte_all_moy = c("0", "1-2", "3-5", "6-10", "+ de 10")
+cat_carte_jard = c("0%", "0%-20%", "20%-40%", "40%-60%", "60%-100%")
 cat_carte_tendance_moy = c("Pas de détection", "Peu abondant", "Abondant",
                            "Très abondant", "Extrêmement abondant")
 couleurs = c("#7f7f7f", "#ffef6c", "#f7b905", "#ff7400", "#ff0000", "#950000")
@@ -122,11 +184,31 @@ nb_idv_cpt = sum(df_sp_ab$abondance)
 
 #----- Graphiques -----#
 
-# Df abondance par espèce
-df_repartition = df_all_sp %>% 
+# Df abondance par espèce (post 2019)
+df_repartition = df_opj_new %>% 
   group_by(nom_espece) %>% 
   summarise(sum_ab = sum(abondance),
-            rel_ab = sum(abondance)/sum(df_all_sp$abondance),
+            rel_ab = sum(abondance)/sum(df_opj_new$abondance),
+            .groups = 'drop') %>%
+  arrange(sum_ab) %>%
+  mutate(couleur = c(rep("#3138cc", 10), rep("#6893fc", 9), rep("#90d3ff", 9)),
+         couleur = if_else(nom_espece == sp_name, color_flag, couleur))
+
+# Df abondance par espèce (old data)
+df_repartition_old = df_opj_old %>%
+  group_by(nom_espece) %>% 
+  summarise(sum_ab = sum(abondance),
+            rel_ab = sum(abondance)/sum(df_opj_old$abondance),
+            .groups = 'drop') %>%
+  arrange(sum_ab) %>%
+  mutate(couleur = c(rep("#3138cc", 10), rep("#6893fc", 9), rep("#90d3ff", 9)),
+         couleur = if_else(nom_espece == sp_name, color_flag, couleur))
+
+# Df abondance par espèce (all data)
+df_repartition_new_old = df_opj %>% 
+  group_by(nom_espece) %>% 
+  summarise(sum_ab = sum(abondance),
+            rel_ab = sum(abondance)/sum(df_opj$abondance),
             .groups = 'drop') %>%
   arrange(sum_ab) %>%
   mutate(couleur = c(rep("#3138cc", 10), rep("#6893fc", 9), rep("#90d3ff", 9)),
@@ -142,7 +224,6 @@ df_repartition = df_all_sp %>%
 
 # Semaine
 df_nb_obs_date <- df_sp %>%
-  mutate(date = as.Date(date_collection)) %>%
   group_by(date) %>%
   summarise(n = n(),
             .groups = 'drop') %>%
@@ -178,16 +259,31 @@ cat_carte_moy = c("0", "0-1", "2-5", "6-10", "+ de 10")
 #----- Indicateurs relatifs -----#
 
 # Calcul du nombre de participations sur toute l'opération par semaine
-nb_part_par_sem = df_all_sp %>%
+nb_part_par_sem = df_opj %>%
+  mutate(num_semaine = as.integer(num_semaine)) %>%
+  group_by(annee, num_semaine) %>%
+  summarise(nb_part = n_distinct(participation_id),
+            .groups = 'drop')
+
+# New
+nb_part_par_sem_new = df_opj_new %>%
+  mutate(num_semaine = as.integer(num_semaine)) %>%
+  group_by(annee, num_semaine) %>%
+  summarise(nb_part = n_distinct(participation_id),
+            .groups = 'drop')
+
+# Old
+nb_part_par_sem_old = df_opj_old %>%
   mutate(num_semaine = as.integer(num_semaine)) %>%
   group_by(annee, num_semaine) %>%
   summarise(nb_part = n_distinct(participation_id),
             .groups = 'drop')
 
 # Abondance relative
+# All data
 df_ab_rel <- df_sp %>%
   mutate(num_semaine = as.integer(num_semaine)) %>%
-  group_by(annee, num_semaine, date_collection) %>%
+  group_by(annee, num_semaine, date) %>%
   summarise(sum_ab = sum(abondance),
             .groups = 'drop') %>%        # Somme des abondances
   left_join(nb_part_par_sem, by = c("annee" = "annee",
@@ -201,6 +297,7 @@ df_ab_rel <- df_sp %>%
   ungroup()
 
 # Phénologie
+# All data
 df_freq_rel <- df_sp_ab %>%
   mutate(num_semaine = as.integer(num_semaine)) %>%
   group_by(annee, num_semaine) %>%
@@ -211,16 +308,38 @@ df_freq_rel <- df_sp_ab %>%
   mutate(freq_rel = if_else(is.na(sum_obs), 0, sum_obs/nb_part)) %>%   # Division par le nombre de participations
   arrange(num_semaine)
 
+# New data
+df_freq_rel_new <- df_sp_ab_new %>%
+  mutate(num_semaine = as.integer(num_semaine)) %>%
+  group_by(annee, num_semaine) %>%
+  summarise(sum_obs = n(),
+            .groups = 'drop') %>%       # Somme des observations
+  full_join(nb_part_par_sem_new, by = c("annee" = "annee",
+                                    "num_semaine" = "num_semaine")) %>%
+  mutate(freq_rel = if_else(is.na(sum_obs), 0, sum_obs/nb_part)) %>%   # Division par le nombre de participations
+  arrange(num_semaine)
+
+# Old data
+df_freq_rel_old <- df_sp_ab_old %>%
+  mutate(num_semaine = as.integer(num_semaine)) %>%
+  group_by(annee, num_semaine) %>%
+  summarise(sum_obs = n(),
+            .groups = 'drop') %>%       # Somme des observations
+  full_join(nb_part_par_sem_old, by = c("annee" = "annee",
+                                    "num_semaine" = "num_semaine")) %>%
+  mutate(freq_rel = if_else(is.na(sum_obs), 0, sum_obs/nb_part)) %>%   # Division par le nombre de participations
+  arrange(num_semaine)
+
 # Présence moyenne
 df_date_wm = df_sp %>%
   filter(abondance !=0, annee != strftime(Sys.Date()+365/2, "%Y")) %>%
-  mutate(semaine = as.integer(strftime(date_collection, '%V'))) %>%
+  mutate(semaine = as.integer(strftime(date, '%V'))) %>%
   group_by(annee) %>%
   summarise(sum_sp = weighted.mean(semaine, abondance), .groups = 'drop')
 
 df_date_wm_sqrt = df_sp %>%
   filter(abondance !=0, annee != strftime(Sys.Date()+365/2, "%Y")) %>%
-  mutate(semaine = as.integer(strftime(date_collection, '%V'))) %>%
+  mutate(semaine = as.integer(strftime(date, '%V'))) %>%
   left_join(df_date_wm, by = c("annee" = "annee")) %>%
   mutate(minus = abondance*((semaine - sum_sp)^2) ) %>%
   group_by(annee, sum_sp) %>%
@@ -233,7 +352,7 @@ df_date_wm_sqrt = df_sp %>%
 #########################################
 
 # Moyenne d'abondance
-df_moyenne_greg = df_all_sp %>%
+df_moyenne_greg = df_opj %>%
   filter(abondance!= 0) %>%
   group_by(nom_espece) %>%
   summarise(m_abn = mean(abondance), n = n(),
@@ -252,7 +371,7 @@ df_gregarite = data.frame(nb_idv = as.numeric(names(summary(as.factor(df_sp_ab$a
                                nb_idv >= 10 ~ "10 et +"))
 
 # Toutes les espèces
-df_gregarite_all = df_all_sp %>%
+df_gregarite_all = df_opj %>%
   filter(abondance!= 0) %>%
   mutate(ab_grega = factor(if_else(abondance == 1, "1 individu", "+ de 1 individu"),
                            levels = c("1 individu", "+ de 1 individu"))) %>%
@@ -305,8 +424,26 @@ lst_param = list(bois, champ, prairie, environnement)
 
 #----- Position + barycentre -----#
 
-# Df des jardins positionnés sur la carte
-df_jardin_point = df_sp %>%
+# Df des jardins positionnés sur la carte (new data)
+df_jardin_point = df_sp_new %>%
+  group_by(jardin_id, latitude, longitude) %>%
+  summarise(sum_ab = sum(abondance), .groups = 'drop') %>%
+  filter(!is.na(latitude)) %>%
+  mutate(Présence = if_else(sum_ab == 0, "Espèce non observée", "Espèce observée"),
+         alpha = if_else(sum_ab == 0, 0.7, 1)) %>%
+  arrange(Présence)
+
+# Df des jardins positionnés sur la carte (old data)
+df_jardin_point_old = df_sp_old %>%
+  group_by(jardin_id, latitude, longitude) %>%
+  summarise(sum_ab = sum(abondance), .groups = 'drop') %>%
+  filter(!is.na(latitude)) %>%
+  mutate(Présence = if_else(sum_ab == 0, "Espèce non observée", "Espèce observée"),
+         alpha = if_else(sum_ab == 0, 0.7, 1)) %>%
+  arrange(Présence)
+
+# Df des jardins positionnés sur la carte (all data)
+df_jardin_point_new_old = df_sp %>%
   group_by(jardin_id, latitude, longitude) %>%
   summarise(sum_ab = sum(abondance), .groups = 'drop') %>%
   filter(!is.na(latitude)) %>%
@@ -339,7 +476,7 @@ bary_function <- function(df,
 }
 
 # Df barycentre de tous les jardins chaque année
-df_bary_base<- df_all_sp %>%
+df_bary_base<- df_opj %>%
   group_by(annee, jardin_id, latitude, longitude) %>%
   summarise(sum_ab = n(), .groups = 'drop') %>%
   filter(!is.na(latitude)) %>%
@@ -361,7 +498,7 @@ df_bary_one_sp <- cbind(bary_function(df = df_sp),
                                    color = "red"))
 
 # Df des barycentres pour toutes les espèces
-df_bary_all_sp <- bary_function(df = df_all_sp,
+df_bary_all_sp <- bary_function(df = df_opj,
                                 gb1 = c("annee", "jardin_id", "latitude",
                                         "longitude", "nom_espece"),
                                 gb2 = c("annee", "nom_espece")) %>%
@@ -377,10 +514,10 @@ df_bary_all_sp <- bary_function(df = df_all_sp,
 #------------ Co-occurence -------------#
 #########################################
 
-df_co = df_all_sp %>%
+df_co = df_opj %>%
   filter(participation_id %in% unique(df_sp_ab$participation_id))
 
-df_occurence = df_all_sp %>%
+df_occurence = df_opj %>%
   select(participation_id, an_sem, annee, nom_espece, abondance) %>%
   pivot_wider(names_from = nom_espece, values_from = abondance)%>%
   filter(!!sym(sp_name) != 0)%>%
@@ -393,7 +530,7 @@ df_oui = apply(df_occurence, 2, function(x){return(length(which(x=="OUI"))/lengt
 df_oui = sort(round(df_oui*100, digits = 2), decreasing = TRUE)
 df_oui = data.frame(nom = names(df_oui), corr = as.numeric(df_oui))
 
-all_names = unique(df_all_sp$nom_espece)
+all_names = unique(df_opj$nom_espece)
 names_no_sp = all_names[-which(all_names == sp_name)]
 df_oui = df_oui %>%
   dplyr::arrange(nom)
@@ -415,7 +552,7 @@ df_tab = df_oui %>%
 
 vec_name = c(sp_name, (df_oui %>% arrange(desc(corr)))$nom[1:5])
 
-df_coocc = df_all_sp %>%
+df_coocc = df_opj %>%
   filter(nom_espece %in% vec_name) %>%
     group_by(nom_espece, an_sem) %>%
     summarise(sum_ab = sum(abondance), .groups = 'drop') %>%
@@ -427,7 +564,7 @@ df_coocc = df_all_sp %>%
     relocate(nom_espece, .before = an_sem)
 
 # Nombre d'observations totales de chaque espèce
-df_nbsp_all = df_all_sp %>%
+df_nbsp_all = df_opj %>%
   filter(abondance != 0) %>%
   group_by(nom_espece) %>%
   summarise(n = n(), .groups = 'drop')
@@ -440,7 +577,7 @@ if (file.exists("data/rdata/df_heatmap.rds") &
   df_heatmap = data.frame()
   
   for (name in rev(df_repartition$nom_espece)) {
-    df_tmp = df_all_sp %>%
+    df_tmp = df_opj %>%
       select(participation_id, an_sem, annee, nom_espece, abondance) %>%
       arrange(factor(nom_espece, levels = rev(df_repartition$nom_espece))) %>%
       pivot_wider(names_from = nom_espece, values_from = abondance) %>%
@@ -466,7 +603,7 @@ if (file.exists("data/rdata/df_heatmap.rds") &
 
 
 
-df_histo_test = df_all_sp %>%
+df_histo_test = df_opj %>%
   filter(abondance!= 0) %>%
   mutate(ab_grega = factor(case_when(abondance == 1 ~ "1",
                                      abondance <= 4 ~ "2 à 4",
