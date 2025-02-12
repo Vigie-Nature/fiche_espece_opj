@@ -8,6 +8,7 @@ SELECT
 	soa.deptCode as dept_code,
 	soa.postalCode as code_postal,
 	soa.userId as user_id,
+	usr.email as email,
 	soay.observationAreaId as jardin_id,
 	t.value as num_semaine,
 	t2.value as nom_espece,
@@ -37,6 +38,8 @@ LEFT JOIN spgp.spj_observation_area_year soay on
 	pp.observationAreaYearId = soay.id
 LEFT JOIN spgp.spj_observation_area soa on
 	soay.observationAreaId = soa.id
+LEFT JOIN spgp.users usr on
+  soa.userId = usr.id
 LEFT JOIN thesaurus t on
 	pp.weekId = t.id
 LEFT JOIN thesaurus t2 on
