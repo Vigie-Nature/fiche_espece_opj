@@ -11,6 +11,8 @@ data/history/
 **/*.html
 html/
 out/graphiques/
+*/*test*
+*/test*/
 # Ignorer tous les fichiers .jpg
 data/photos/*.jpg
 data/photos/*.png
