@@ -325,10 +325,10 @@ graph_pic <- function(df_pic, x = "annee", y = "sum_sp", ecart = "rmse",
     geom_hline(yintercept = 25, color = "#606060", linetype = "dashed") +
     geom_hline(yintercept = 38, color = "#606060", linetype = "dashed") +
     geom_hline(yintercept = 51, color = "#606060", linetype = "dashed") +
-    annotate("text", x = 2018.5, y = 5.5, label = "Hiver", color = "#234aa6") +
-    annotate("text", x = 2018.5, y = 18.5, label = "Printemps", color = "#5cda30") +
-    annotate("text", x = 2018.5, y = 31.5, label = "Été", color = "#da4c30") +
-    annotate("text", x = 2018.5, y = 44.5, label = "Automne", color = "#e7972a") +
+    annotate("text", x = 2005.5, y = 5.5, label = "Hiver", color = "#234aa6") +
+    annotate("text", x = 2005.5, y = 18.5, label = "Printemps", color = "#5cda30") +
+    annotate("text", x = 2005.5, y = 31.5, label = "Été", color = "#da4c30") +
+    annotate("text", x = 2005.5, y = 44.5, label = "Automne", color = "#e7972a") +
     geom_errorbar(aes(x=!!sym(x), ymin= !!sym(y)-!!sym(ecart), ymax=!!sym(y)+!!sym(ecart)),
                   width=0.4, colour="#bb680e", alpha=0.9, linewidth=1.3) +
     geom_point(colour = "#ffa600", size = 3) +
