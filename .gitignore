@@ -18,6 +18,7 @@ data/photos/*.jpg
 data/photos/*.png
 # Ne pas ignorer Amaryllis.jpg
 !data/photos/Amaryllis.jpg
+*/*.geojson
 
 data/img/*
 !data/img/papillon.png
