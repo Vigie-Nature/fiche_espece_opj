@@ -39,8 +39,8 @@
 #'                                    value = c(0.23, 0.11, 0.219)),
 #'                 x = "nom", y = "value", fill = "nom", title = "Proportions",
 #'                 limits = c("B", "C", "A"), couleur = c("red", "grey", "grey"))
-gg_histo_plotly <- function(df_hp, x = "nom_espece", y = "rel_ab",
-                            fill = "nom_espece", 
+gg_histo_plotly <- function(df_hp, x = "taxon", y = "rel_ab",
+                            fill = "taxon", 
                             title = "Proportion d'abondance de chaque espèce parmi toutes les observations", 
                             ytxt = "% d'abondance",
                             limits, couleur, percent = TRUE){
@@ -316,7 +316,7 @@ aes_echarts <- function(plot_e, xlab, ylab, title, line_color, one_y = TRUE){
 
 
 # Pic d'activité
-graph_pic <- function(df_pic, x = "annee", y = "sum_sp", ecart = "rmse",
+graph_pic <- function(df_pic, x = "session_year", y = "sum_sp", ecart = "rmse",
                       xlab = "Année", ylab = "Semaine de participation",
                       title = "Semaine du pic d'activité et son écart-type chaque année"){
   
@@ -352,7 +352,7 @@ graph_pic <- function(df_pic, x = "annee", y = "sum_sp", ecart = "rmse",
 #########################################
 
 # Abondance moyenne par espèce
-histo_ab_mean <- function(df_mg, x = "nom_espece", w = "m_abn", sd = "sd",
+histo_ab_mean <- function(df_mg, x = "taxon", w = "m_abn", sd = "sd",
                           color_txt = "black", xlab = "Espèce",
                           ylab = "Nombre d'individus", order = "m_abn",
                           title = "Moyenne de l'abondance pour chaque espèce"){
@@ -412,7 +412,7 @@ histo_grega <- function(df_grega, x = "class_idv", y = "freq_prc",
 }
 
 # Indice de grégarité par espèce
-histo_indice_greg <- function(df_greg_all, x = "nom_espece", order = "classif",
+histo_indice_greg <- function(df_greg_all, x = "taxon", order = "classif",
                               fill = "ab_grega", w = "prop_grega",
                               mean = "classif", sqrt = "sqrt_n",
                               lab_fill = "Grégarité",
@@ -518,8 +518,8 @@ carte_point_jardin <- function(france, df_jp, x = "longitude", y = "latitude",
 
 # Barycentre
 carte_bary_one_df <- function(france, df_bary, x = "longitude", y = "latitude",
-                              color = "nom_espece", frame ="annee", col_val,
-                              txt = "nom_espece",
+                              color = "taxon", frame ="session_year", col_val,
+                              txt = "taxon",
                               title = "Barycentre des jardins et de l'espèce"){
   gg = ggplot(france) +
     geom_sf(fill = "#f0f0f0", color = "#a0a0a0") +
@@ -540,8 +540,8 @@ carte_bary_one_df <- function(france, df_bary, x = "longitude", y = "latitude",
 
 # Barycentre (toutes les espèces)
 carte_bary_two_df <- function(france, df_bary, df_bary2, x = "longitude", y = "latitude",
-                              color = "nom_esp_min", frame = "annee", txt = "nom_espece",
-                              customdata ="nom_espece", col_man,
+                              color = "nom_esp_min", frame = "session_year", txt = "taxon",
+                              customdata ="taxon", col_man,
                               title = "Barycentre des jardins et des espèces"){
   
   gg = ggplot(france) +
@@ -589,10 +589,10 @@ gg_carte_mois = function(month, df_sp, france){
                        longitude = NA,
                        sum_ab = 0)
   df_migration = df_sp %>%
-    mutate(mois = strftime(date_collection, "%m")) %>%
+    mutate(mois = strftime(session_date, "%m")) %>%
     filter(mois == month) %>%
     group_by(mois, jardin_id, latitude, longitude) %>%
-    summarise(sum_ab = sum(abondance)) %>%
+    summarise(sum_ab = sum(taxon_count)) %>%
     filter(sum_ab != 0) %>%
     dplyr::union(df_mois)
   
