@@ -29,7 +29,8 @@ obpj_pratiques <- read.csv2(paste0("data/donnees_historiques/",
 # Traitement du dataframe des pratiques
 obpj_pratiques_trait = obpj_pratiques %>%
   pivot_wider(names_from = X.column., values_from = engrais) %>%
-  rename(type_Engrais = `type d'engrais`,
+  rename(session_year = annee,
+         type_Engrais = `type d'engrais`,
          type_Insecticide = `type d'insecticides`,
          type_Herbicide = `type d'herbicide`,
          type_Fongicide = `type de fongicides`,
@@ -40,9 +41,9 @@ obpj_pratiques_trait = obpj_pratiques %>%
          frequence_Herbicide = herbicides,
          frequence_Fongicide = fongicides,
          frequence_AntiLimace = antilimaces,
-         frequenceBouillieBordelaise = `bouillie bordelaise`) %>%
+         frequence_BouillieBordelaise = `bouillie bordelaise`) %>%
   group_by(zfk) %>%
-  filter(annee == max(annee)) %>%
+  filter(session_year == max(session_year)) %>%
   ungroup()
 
 # Liste user à partir de 2019
@@ -71,42 +72,43 @@ df_old_data = df_join_obs_part %>%
          lat != "\\N",
          lat != 0) %>%
   # On renomme les colonnes selon les métadonnées de 2019 et +
-  dplyr::rename(code_postal = codepostal,
-                participation_id = participationpk,
+  dplyr::rename(session_zip_code = codepostal,
+                session_id = participationpk,
                 latitude = lat,
                 longitude = long,
-                abondance = nb_individus,
+                taxon_count = nb_individus,
                 type_environnement = environnement,
-                nom_espece = sp_name,
+                taxon = sp_name,
                 jardin_id = zpk) %>%
-  mutate(nom_espece = if_else(nom_espece == "Cuivrés", "Cuivré", nom_espece)) %>%
+  mutate(taxon = if_else(taxon == "Cuivrés", "Cuivré", taxon)) %>%
   # On supprime les données pour les espèces absentes de la liste principale
-  filter(nom_espece %in% liste_principale) %>%
+  filter(taxon %in% liste_principale) %>%
   # On modifie le type ou le contenu de certaines colonnes
   mutate(date = as.Date(date),
-         annee = as.integer(strftime(date, "%Y")),
+         session_date = as.Date(date),
+         session_year = as.integer(strftime(date, "%Y")),
          # adaptation pour les département en Corse
-         dept_code = if_else(substr(code_postal, 1, 2)=="20",
-                             if_else(code_postal < "20200",
+         dept_code = if_else(substr(session_zip_code, 1, 2)=="20",
+                             if_else(session_zip_code < "20200",
                                      "2A", "2B"),
-                             substr(code_postal, 1, 2)),  
-         num_semaine = strftime(date, "%V"),
+                             substr(session_zip_code, 1, 2)),  
+         session_week = strftime(date, "%V"),
          user_id = -dense_rank(email),
          jardin_id = -jardin_id,
          longitude = as.double(longitude),
          latitude = as.double(latitude),
-         an_sem = paste0(annee, "-S", num_semaine),
+         an_sem = paste0(session_year, "-S", session_week),
          type_environnement = case_when(is.na(type_environnement) ~ NA,
                                         type_environnement == "" ~ NA,
                                         type_environnement == "urbain" ~ "Urbain",
                                         type_environnement == "peri-urbain" ~ "Péri-urbain",
                                         type_environnement == "rural" ~ "Rural"),
-         participation_id = -(participation_id))%>%
+         session_id = -(session_id))%>%
   # Pré 2014, les dates d'observations sont en milieu de mois, et post 2014
   # elles sont en début de mois. Il semble y avoir eu une transition créant des
   # dates en début de mois entre 2011 et 2014 qu'on supprime
-  filter(!( (annee <= 2013 & strftime(date, "%d") == "01") | 
-              (annee == 2014 & strftime(date, "%d")=="15") )) %>%
+  filter(!( (session_year <= 2013 & strftime(date, "%d") == "01") | 
+              (session_year == 2014 & strftime(date, "%d")=="15") )) %>%
   left_join(reg_dep, by = c("dept_code" = "code_departement")) %>%
   # Les users toujours actifs récupèrent l'id actuelle
   left_join(table_user_2019, by = c("email" = "email")) %>%
