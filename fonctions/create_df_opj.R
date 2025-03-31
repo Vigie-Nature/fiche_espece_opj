@@ -42,7 +42,7 @@ if ((!file.exists("data/rdata/df_opj.rds") |                                  # 
      Sys.Date()-as.Date(file.info("data/rdata/df_opj.rds")$ctime) > 5)) &
     is_intranet()) {    #   que le fichier a plus de 5 jours]
   # Lecture depuis la base mosaic
-  df_opj = import_from_mosaic(query = read_sql_query("SQL/export_a_plat_OPJ.sql"),
+  df_opj = import_from_mosaic(query = read_sql_query("sql/export_a_plat_OPJ.sql"),
                                  database_name = "spgp")
   
   # On sauvegarde si on ne se trouve pas sur le serveur gitlab
