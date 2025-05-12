@@ -18,16 +18,17 @@
 
 library(dplyr)
 library(here)
+require(httr)
 
 if (Sys.getenv("CI") != "true") {
   readRenviron(".env")
 }
 source("fonctions/function_import_from_mosaic.R")
 source("fonctions/var.R")
-is_intranet <- function(url = "https://virtualianet.mnhn.fr/") {
+is_intranet <- function(url = "https://intranet.mnhn.fr/") {
   tryCatch({
-    response <- GET(url)
-    return(status_code(response) == 200)
+    response <- httr::GET(url)
+    return(httr::status_code(response) == 200)
   }, error = function(e) {
     return(FALSE)
   })
@@ -39,8 +40,8 @@ is_intranet <- function(url = "https://virtualianet.mnhn.fr/") {
 # Mise à jour 
 if ((!file.exists("data/rdata/df_opj.rds") |                                  # Si le fichier n'existe pas OU
     (strftime(Sys.Date(), "%A") == "lundi" &                                    #  [que la date du jour est un lundi ET
-     Sys.Date()-as.Date(file.info("data/rdata/df_opj.rds")$ctime) > 5)) &
-    is_intranet()) {    #   que le fichier a plus de 5 jours]
+     Sys.Date()-as.Date(file.info("data/rdata/df_opj.rds")$ctime) > 5)) &    #   que le fichier a plus de 5 jours
+    is_intranet()) {
   # Lecture depuis la base mosaic
   df_opj = import_from_mosaic(query = read_sql_query("sql/export_a_plat_OPJ.sql"),
                                  database_name = "spgp")
