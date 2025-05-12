@@ -245,7 +245,7 @@ print(carte_ab(shape_map = france, fill_map = df_dep$cl_jard, fill_color = coule
 #| title: "Abondance de l'espèce et pression d'échantillonnage"
 
 datemin = as.Date("2019-01-01") - 7
-datemax = max(df_sp$date) + 7
+datemax = max(df_sp$session_date) + 7
 
 gg1 <- gg_histo(df_histo = df_ab_rel %>% filter(session_year >= 2019),
                 y = "sum_ab_rel", dmin = datemin, dmax = datemax,
@@ -263,7 +263,7 @@ grid.arrange(gg1, gg2, ncol = 1, heights=c(2, 1))
 ```{r}
 #| title: "Abondance de l'espèce et pression d'échantillonnage"
 
-datemin = min(df_sp$date) - 7
+datemin = min(df_sp$session_date) - 7
 datemax = as.Date("2019-01-01") + 7
 
 gg1 <- gg_histo(df_histo = df_ab_rel %>% filter(session_year < 2019),
@@ -282,8 +282,8 @@ grid.arrange(gg1, gg2, ncol = 1, heights=c(2, 1))
 ```{r}
 #| title: "Abondance de l'espèce et pression d'échantillonnage"
 
-datemin = min(df_sp$date) - 7
-datemax = max(df_sp$date) + 7
+datemin = min(df_sp$session_date) - 7
+datemax = max(df_sp$session_date) + 7
 
 gg1 <- gg_histo(df_histo = df_ab_rel,
                 y = "sum_ab_rel", dmin = datemin, dmax = datemax,
