@@ -86,7 +86,7 @@ gg_histo_plotly <- function(df_hp, x = "taxon", y = "rel_ab",
   
   # On utilise ggplotly avec l'argument "tooltip" pour que le "text" s'affiche
   # quand on passe la souris sur les histogrammes
-  return(ggplotly(gg, tooltip = "text") %>% config(displayModeBar = FALSE))
+  return(ggplotly(gg, tooltip = "text") %>% plotly::config(displayModeBar = FALSE))
 }
 
 #########################################
@@ -112,7 +112,7 @@ gg_histo_plotly <- function(df_hp, x = "taxon", y = "rel_ab",
 #'          ytxt = "Taux de chômage",
 #'          dmin = as.Date("2000-04-01"),
 #'          dmax = as.Date("2009-04-01"))
-gg_histo <- function(df_histo, x = "date", y = "sum_ab",
+gg_histo <- function(df_histo, x = "session_date", y = "sum_ab",
                      ytxt = "Abondance totale", dmin, dmax, title = ""){
   
   # On fait en sorte qu'on ne voit que les labels soient centrés sur le 1er juillet
