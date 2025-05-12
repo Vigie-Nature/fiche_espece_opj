@@ -284,7 +284,7 @@ nb_part_par_sem_old = df_opj_old %>%
 # All data
 df_ab_rel <- df_sp %>%
   mutate(session_week = as.integer(session_week)) %>%
-  group_by(session_year, session_week, date) %>%
+  group_by(session_year, session_week, session_date) %>%
   summarise(sum_ab = sum(taxon_count),
             .groups = 'drop') %>%        # Somme des abondances
   left_join(nb_part_par_sem, by = c("session_year" = "session_year",
