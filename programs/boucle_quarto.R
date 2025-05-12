@@ -17,7 +17,7 @@ reg_dep = read.csv2("data/departements-france.csv", sep=",")
 if (Sys.getenv("CI") == "true") {
   liste_principale <- c("Amaryllis", "Argus verts", "Belle-dame")
 }else{
-  liste_principale <- c("Amaryllis", "Argus verts", "Belle-dame")
+  liste_principale <- c("Amaryllis", "Argus verts", "Belle-dame", "Paon du jour", "Piérides blanches")
   # liste_principale <- c("Amaryllis", "Argus verts", "Belle-dame", "Citrons",
   #                       "Paon du jour", "Piérides blanches", "Tabac d'Espagne", "Gazé")
   # liste_principale <- c("Amaryllis", "Argus verts", "Aurores", "Belle-dame",
@@ -34,15 +34,15 @@ tryCatch({
   message("Début lecture base")
   
   # Data frame des espèces
-  df_sp_for_names = import_from_mosaic(query = read_sql_query("SQL/export_a_plat_OPJ.sql"),
+  df_sp_for_names = import_from_mosaic(query = read_sql_query("sql/export_a_plat_OPJ.sql"),
                                        database_name = "spgp") %>%
     filter(!is.na(dept_code),         # suppression des départements nuls
            str_length(dept_code)==2,  # suppression des drom-com
-           annee >= 2019,
-           nom_espece %in% liste_principale) %>%         # suppression des données avant 2018
-    mutate(an_sem = if_else(as.numeric(num_semaine) < 10,
-                            paste0(annee, "-S0", num_semaine),
-                            paste0(annee, "-S", num_semaine)) ) %>%
+           session_year >= 2019,
+           taxon %in% liste_principale) %>%         # suppression des données avant 2018
+    mutate(an_sem = if_else(as.numeric(session_week) < 10,
+                            paste0(session_year, "-S0", session_week),
+                            paste0(session_year, "-S", session_week)) ) %>%
     left_join(reg_dep, by = c("dept_code" = "code_departement")) # ajout des départements
   
   message("Fin lecture base")
@@ -54,7 +54,7 @@ tryCatch({
 
 time = Sys.time()
 # Boucle sur les noms d'espèces
-for (sp_name in unique(df_sp_for_names$nom_espece)) {
+for (sp_name in liste_principale) {
   
   tryCatch({
     filename = paste0("maquette_espece_page_", sp_name, ".html")
@@ -70,6 +70,23 @@ for (sp_name in unique(df_sp_for_names$nom_espece)) {
   })
   
 }
+
+# for (sp_name in liste_principale) {
+# 
+#   tryCatch({
+#     filename = paste0("maquette_espece_", sp_name, ".html")
+# 
+#     quarto_render(input = "maquette_espece.qmd",
+#                   execute_params = list("sp_name" = sp_name),
+#                   output_file = filename)
+# 
+#     file.rename(filename, file.path("out", filename))
+# 
+#   }, error = function(e) {
+#     message(sprintf("Error rendering document_%s.qmd: %s", sp_name, e$message))
+#   })
+# 
+# }
   
 print(Sys.time() - time)
 
