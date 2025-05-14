@@ -261,7 +261,8 @@ carte_ab <- function(shape_map, fill_map, fill_title, fill_color,
 #'             xlab = "Date", ylab = "Unemploy", title = "Unemploy / date",
 #'             line_color = c("purple", "blue", "green", "yellow", "orange", "red"),
 #'             one_y = TRUE)
-aes_echarts <- function(plot_e, xlab, ylab, title, line_color, one_y = TRUE){
+aes_echarts <- function(plot_e, xlab, ylab, title, line_color, one_y = TRUE,
+                        xmax = 53, l1 = 12, l2 = 25, l3 = 38, l4 = 51){
   
   plot_e <- plot_e %>%
     # e_bar(sum_ab) %>%
@@ -282,12 +283,12 @@ aes_echarts <- function(plot_e, xlab, ylab, title, line_color, one_y = TRUE){
   
   if (one_y) {
     plot_e <- plot_e %>%
-      e_x_axis(max = 52) %>%
+      e_x_axis(max = xmax) %>%
       e_mark_line(emphasis = list(disabled = TRUE), symbol = "none", lineStyle = list(color = "grey"),
-                  data = list(xAxis = 12), title = "") %>%
-      e_mark_line(data = list(xAxis = 25), title = "") %>%
-      e_mark_line(data = list(xAxis = 38), title = "") %>%
-      e_mark_line(data = list(xAxis = 51), title = "") %>%
+                  data = list(xAxis = l1), title = "") %>%
+      e_mark_line(data = list(xAxis = l2), title = "") %>%
+      e_mark_line(data = list(xAxis = l3), title = "") %>%
+      e_mark_line(data = list(xAxis = l4), title = "") %>%
       e_graphic_g(
         elements = list(
           # list(type = "text", left = 'center', top = 20,
@@ -393,7 +394,7 @@ histo_grega <- function(df_grega, x = "class_idv", y = "freq_prc",
                         xlab = "Nombre d'individus observés simultanément",
                         ylab = "% d'observations",
                         title = "Distribution de la grégarité de l'espèce",
-                        limits = c("1", "2 à 4", "5 à 9", "10 et +")){
+                        limits = c("1", "2 à 4", "5 et +")){
   return(ggplot(df_grega) +
     geom_bar(aes(x = !!sym(x), y = !!sym(y)),
              stat = "identity",
