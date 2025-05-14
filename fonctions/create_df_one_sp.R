@@ -97,6 +97,7 @@ df_sp_ab = df_sp %>%
 
 # Carte de france en objet sf
 france <- read_sf(paste0("carte/contour-des-departements.geojson"))
+france_reg <- read_sf(paste0("carte/contour-des-regions.geojson"))
 
 #########################################
 #-------- Calcul d'indicateurs ---------#
@@ -173,6 +174,8 @@ cat_carte_jard = c("0%", "0%-20%", "20%-40%", "40%-60%", "60%-100%")
 cat_carte_tendance_moy = c("Pas de détection", "Peu abondant", "Abondant",
                            "Très abondant", "Extrêmement abondant")
 couleurs = c("#7f7f7f", "#ffef6c", "#f7b905", "#ff7400", "#ff0000", "#950000")
+
+source("fonctions/create_df_reg.R")
 
 #########################################
 #------------ Observations -------------#
@@ -280,7 +283,7 @@ nb_part_par_sem_old = df_opj_old %>%
   summarise(nb_part = n_distinct(session_id),
             .groups = 'drop')
 
-# Abondance relative
+#----- Abondance relative -----#
 # All data
 df_ab_rel <- df_sp %>%
   mutate(session_week = as.integer(session_week)) %>%
@@ -297,7 +300,39 @@ df_ab_rel <- df_sp %>%
   select(!col_sup) %>%
   ungroup()
 
-# Phénologie
+# New data
+df_ab_rel_new <- df_sp_new %>%
+  mutate(session_week = as.integer(session_week)) %>%
+  group_by(session_year, session_week, session_date) %>%
+  summarise(sum_ab = sum(taxon_count),
+            .groups = 'drop') %>%        # Somme des abondances
+  left_join(nb_part_par_sem, by = c("session_year" = "session_year",
+                                    "session_week" = "session_week")) %>%
+  mutate(sum_ab_rel = sum_ab/nb_part) %>%  # Division par le nombre de participations
+  arrange(session_week) %>%
+  group_by(session_year, session_week) %>%
+  mutate(col_sup = if_else(n() == 2 & sum_ab == 0, 1, 0)) %>%
+  filter(col_sup == 0) %>%
+  select(!col_sup) %>%
+  ungroup()
+
+# Old data
+df_ab_rel_old <- df_sp_old %>%
+  mutate(session_week = as.integer(session_week)) %>%
+  group_by(session_year, session_week, session_date) %>%
+  summarise(sum_ab = sum(taxon_count),
+            .groups = 'drop') %>%        # Somme des abondances
+  left_join(nb_part_par_sem, by = c("session_year" = "session_year",
+                                    "session_week" = "session_week")) %>%
+  mutate(sum_ab_rel = sum_ab/nb_part) %>%  # Division par le nombre de participations
+  arrange(session_week) %>%
+  group_by(session_year, session_week) %>%
+  mutate(col_sup = if_else(n() == 2 & sum_ab == 0, 1, 0)) %>%
+  filter(col_sup == 0) %>%
+  select(!col_sup) %>%
+  ungroup()
+
+#----- Fréquence relative -----# 
 # All data
 df_freq_rel <- df_sp_ab %>%
   mutate(session_week = as.integer(session_week)) %>%
@@ -316,7 +351,7 @@ df_freq_rel_new <- df_sp_ab_new %>%
   summarise(sum_obs = n(),
             .groups = 'drop') %>%       # Somme des observations
   full_join(nb_part_par_sem_new, by = c("session_year" = "session_year",
-                                    "session_week" = "session_week")) %>%
+                                        "session_week" = "session_week")) %>%
   mutate(freq_rel = if_else(is.na(sum_obs), 0, sum_obs/nb_part)) %>%   # Division par le nombre de participations
   arrange(session_week)
 
@@ -327,11 +362,54 @@ df_freq_rel_old <- df_sp_ab_old %>%
   summarise(sum_obs = n(),
             .groups = 'drop') %>%       # Somme des observations
   full_join(nb_part_par_sem_old, by = c("session_year" = "session_year",
-                                    "session_week" = "session_week")) %>%
+                                        "session_week" = "session_week")) %>%
   mutate(freq_rel = if_else(is.na(sum_obs), 0, sum_obs/nb_part)) %>%   # Division par le nombre de participations
   arrange(session_week)
 
-# Présence moyenne
+#----- Abondance relative biogéorégions -----#
+# Biogéorégions (code -> Héloïse JEUX)
+biogeoregions = suppressWarnings(suppressMessages(st_read("carte/region_biogeo_fr/region_biogeographique.shp") %>%
+  st_transform(crs = 4326))) # passage du lambert 93 au WGS 84
+# Certains sommets sont dupliqués : on corrige les erreurs
+invalid_index <- which(!st_is_valid(biogeoregions))
+biogeoregions[invalid_index, ] <- st_make_valid(biogeoregions[invalid_index, ])
+biogeoregions$colours = c("#FFBA08", "#573280", "#E9806E", "#A6B1E1", "#39A0ED", "#C4EBC8")
+
+fct_biogeo <- function(df, biogeoregions, group = TRUE){
+  df_biogeo = df %>% filter(!is.na(longitude)) %>%
+    select(jardin_id, longitude, latitude) %>% unique()
+  df_biogeo = st_as_sf(df_biogeo, coords = c("longitude", "latitude"), crs = 4326)
+  df_biogeo = st_join(df_biogeo, biogeoregions)
+  df_biogeo = as.data.frame(df_biogeo) %>% select(-geometry)
+  df_biogeo = df %>% left_join(df_biogeo, by = c("jardin_id"="jardin_id"))
+  
+  if (group) {
+    df_biogeo = df_biogeo %>% filter(!is.na(CODE)) %>%
+      mutate(session_week = as.integer(session_week),
+             CODE = if_else(CODE=="MATL", "ATL", CODE),
+             CODE = if_else(CODE=="MMED", "MED", CODE)) %>%
+      group_by(CODE, session_week) %>%
+      summarise(ab_rel = sum(taxon_count)/n_distinct(session_id), .groups = 'drop')
+  }
+  return(df_biogeo)
+}
+
+# All data
+df_biogeo = fct_biogeo(df = df_opj, biogeoregions = biogeoregions, group = FALSE)
+df_biogeo = df_biogeo %>% filter(!is.na(CODE)) %>%
+  mutate(session_month = as.integer(strftime(session_date, "%m")),
+         CODE = if_else(CODE=="MATL", "ATL", CODE),
+         CODE = if_else(CODE=="MMED", "MED", CODE)) %>%
+  group_by(CODE, session_month) %>%
+  summarise(ab_rel = sum(taxon_count)/n_distinct(session_id), .groups = 'drop')
+
+# New data
+df_biogeo_new = fct_biogeo(df = df_opj_new, biogeoregions = biogeoregions)
+
+# Old data
+df_biogeo_old = fct_biogeo(df = df_opj_old, biogeoregions = biogeoregions)
+
+#----- Présence moyenne -----#
 df_date_wm = df_sp %>%
   filter(taxon_count !=0, session_year != strftime(Sys.Date()+365/2, "%Y")) %>%
   mutate(semaine = as.integer(strftime(date, '%V'))) %>%
@@ -368,8 +446,7 @@ df_gregarite = data.frame(nb_idv = as.numeric(names(summary(as.factor(df_sp_ab$t
   mutate(freq_prc = frequence/sum(frequence),
          class_idv = case_when(nb_idv < 2 ~ "1",
                                nb_idv >= 2 & nb_idv < 5 ~ "2 à 4",
-                               nb_idv >= 5 & nb_idv < 10 ~ "5 à 9",
-                               nb_idv >= 10 ~ "10 et +"))
+                               nb_idv >= 5 ~ "5 et +"))
 
 # Toutes les espèces
 df_gregarite_all = df_opj %>%
