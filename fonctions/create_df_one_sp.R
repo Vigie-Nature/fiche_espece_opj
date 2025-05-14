@@ -368,8 +368,9 @@ df_freq_rel_old <- df_sp_ab_old %>%
 
 #----- Abondance relative biogéorégions -----#
 # Biogéorégions (code -> Héloïse JEUX)
-biogeoregions = suppressWarnings(suppressMessages(st_read("carte/region_biogeo_fr/region_biogeographique.shp") %>%
-  st_transform(crs = 4326))) # passage du lambert 93 au WGS 84
+invisible(capture.output({biogeoregions = st_read("carte/region_biogeo_fr/region_biogeographique.shp")}))
+biogeoregions = biogeoregions %>%
+  st_transform(crs = 4326) # passage du lambert 93 au WGS 84
 # Certains sommets sont dupliqués : on corrige les erreurs
 invalid_index <- which(!st_is_valid(biogeoregions))
 biogeoregions[invalid_index, ] <- st_make_valid(biogeoregions[invalid_index, ])
