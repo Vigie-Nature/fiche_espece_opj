@@ -59,13 +59,15 @@ df_join_obs_part = obpj_participations %>%
   mutate(ytmp = as.integer(strftime(date, "%Y"))) %>%
   full_join(obpj_observations, by = c("participationpk" = "participation_fk")) %>%
   left_join(obpj_pratiques_trait, by = c("zpk" = "zfk")) %>%
+  filter(!is.na(date)) %>%
   select(-ytmp)
 
 # Traitement des anciennes données pour adapter au format des nouvelles
 df_old_data = df_join_obs_part %>%
   # On supprime les observations sans participation correspondante
   # On supprime les observations avec des NA rentrées en \N 
-  filter(!is.na(codepostal),
+  filter(!is.na(date),
+         !is.na(codepostal),
          codepostal != "",
          !is.na(date),
          long != "\\N",
@@ -84,7 +86,7 @@ df_old_data = df_join_obs_part %>%
   # On supprime les données pour les espèces absentes de la liste principale
   filter(taxon %in% liste_principale) %>%
   # On modifie le type ou le contenu de certaines colonnes
-  mutate(date = as.Date(date),
+  mutate(date = as.Date(str_replace(date, "-01$", "-15")), # On uniformise les dates au 15 du mois
          session_date = as.Date(date),
          session_year = as.integer(strftime(date, "%Y")),
          # adaptation pour les département en Corse
@@ -103,12 +105,13 @@ df_old_data = df_join_obs_part %>%
                                         type_environnement == "urbain" ~ "Urbain",
                                         type_environnement == "peri-urbain" ~ "Péri-urbain",
                                         type_environnement == "rural" ~ "Rural"),
+         observation_id = -c(1:n()),
          session_id = -(session_id))%>%
   # Pré 2014, les dates d'observations sont en milieu de mois, et post 2014
   # elles sont en début de mois. Il semble y avoir eu une transition créant des
   # dates en début de mois entre 2011 et 2014 qu'on supprime
-  filter(!( (session_year <= 2013 & strftime(date, "%d") == "01") | 
-              (session_year == 2014 & strftime(date, "%d")=="15") )) %>%
+  # filter(!( (session_year <= 2013 & strftime(date, "%d") == "01") | 
+  #             (session_year == 2014 & strftime(date, "%d")=="15") )) %>%
   left_join(reg_dep, by = c("dept_code" = "code_departement")) %>%
   # Les users toujours actifs récupèrent l'id actuelle
   left_join(table_user_2019, by = c("email" = "email")) %>%
