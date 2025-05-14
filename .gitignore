@@ -31,6 +31,9 @@ data/table_user_2019.csv
 programs/histo
 carte/altitude/
 
+carte/region_biogeo_fr/region_biogeographique.*
+!carte/region_biogeo_fr/region_biogeographique.shp
+
 data/img/*
 !data/img/papillon.png
 !data/img/logo_obj_ope_papillons.png
