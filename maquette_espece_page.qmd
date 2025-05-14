@@ -177,12 +177,13 @@ Faire le lien avec ce qu’on connaît de la distribution de l’espèce ?
 Pouvoir zoomer/dézoomer sur la carte. Afficher de l’information en survolant/cliquant sur un point avec par exemple le nombre d’année de participation et le nombre de sessions d’observation (nombre de fois où le jardin a transmis les données).  
 :::
 
-## Abondance
+::::panel-tabset
+## Abondance par département
 
 :::panel-tabset
 #### 2019-2024
 ```{r}
-print(carte_ab(shape_map = france, fill_map = df_dep$cl_qual, fill_color = couleurs,
+print(carte_ab(shape_map = france, fill_map = df_dep_new$cl_qual, fill_color = couleurs,
          fill_cat = cat_carte_tendance_moy, fill_title = "Abondance relative entre 2019 et 2024",
          map_title = paste0("Carte de distribution de l'abondance relative de l'espèce ", sp_name)))
 
@@ -202,6 +203,36 @@ print(carte_ab(shape_map = france, fill_map = df_dep$cl_qual, fill_color = coule
 
 ```
 :::
+
+## Abondance par région
+
+:::panel-tabset
+#### 2019-2024
+```{r}
+print(carte_ab(shape_map = france_reg, fill_map = df_reg_new$cl_qual, fill_color = couleurs,
+         fill_cat = cat_carte_tendance_moy, fill_title = "Abondance relative entre 2019 et 2024",
+         map_title = paste0("Carte de distribution de l'abondance relative de l'espèce ", sp_name)))
+
+```
+
+#### 2006-2018
+```{r}
+print(carte_ab(shape_map = france_reg, fill_map = df_reg_old$cl_qual, fill_color = couleurs,
+         fill_cat = cat_carte_tendance_moy, fill_title = "Abondance relative entre 2006 et 2018",
+         map_title = paste0("Carte de distribution de l'abondance relative de l'espèce ", sp_name)))
+
+```
+
+#### 2006-2024
+```{r}
+print(carte_ab(shape_map = france_reg, fill_map = df_reg$cl_qual, fill_color = couleurs,
+         fill_cat = cat_carte_tendance_moy, fill_title = "Abondance relative entre 2006 et 2024",
+         map_title = paste0("Carte de distribution de l'abondance relative de l'espèce ", sp_name)))
+
+```
+:::
+
+::::
 
 * **Titre** : Carte de la distribution de l’abondance relative de cette espèce par département. 
 
@@ -287,8 +318,8 @@ Avoir un slider pour visualiser seulement une fenêtre parmi les années (import
 ```{r}
 colfunc <- colorRampPalette(c("#a4dbff", "#0b6cab"))
 ```
-
-### Phénologie
+::::panel-tabset
+### Fréquence relative (Phénologie)
 :::panel-tabset
 #### 2019-2024
 ```{r}
@@ -327,6 +358,99 @@ aes_echarts(plot_e = df_freq_rel %>%
             line_color = vec_col)
 ```
 :::
+
+### Abondance relative
+:::panel-tabset
+#### 2019-2024
+```{r}
+vec_col = c(colfunc(length(unique(df_sp_new$session_year))-1), "#f40b0b")
+aes_echarts(plot_e = df_ab_rel_new %>%
+              group_by(session_year) %>%
+              e_charts(session_week) %>%
+              e_line(sum_ab_rel, symbol='none'),
+            xlab = "Semaine de participation",
+            ylab = "Abondance relative",
+            title = "Abondance par session chaque semaine selon les années",
+            line_color = vec_col)
+```
+
+#### 2006-2018
+```{r}
+vec_col = c(colfunc(length(unique(df_sp_old$session_year))-1), "#f40b0b")
+aes_echarts(plot_e = df_ab_rel_old %>%
+              group_by(session_year) %>%
+              e_charts(session_week) %>%
+              e_line(sum_ab_rel, symbol='none'),
+            xlab = "Semaine de participation",
+            ylab = "Abondance relative",
+            title = "Abondance par session chaque semaine selon les années",
+            line_color = vec_col)
+```
+
+#### 2006-2024
+```{r}
+vec_col = c(colfunc(length(unique(df_sp$session_year))-1), "#f40b0b")
+aes_echarts(plot_e = df_ab_rel %>%
+              group_by(session_year) %>%
+              e_charts(session_week) %>%
+              e_line(sum_ab_rel, symbol='none'),
+            xlab = "Semaine de participation",
+            ylab = "Abondance relative",
+            title = "Abondance par session chaque semaine selon les années",
+            line_color = vec_col)
+```
+
+:::
+
+### Biogéorégions (abondance relative)
+:::panel-tabset
+#### 2019-2024
+```{r}
+vec_col <- biogeoregions %>%
+  filter(CODE %in% unique(df_biogeo_new$CODE)) %>%
+  as.data.frame() %>% select(colours) %>% unlist() %>% unname()
+aes_echarts(plot_e = df_biogeo_new %>%
+              group_by(CODE) %>%
+              e_charts(session_week) %>%
+              e_line(ab_rel, symbol='none'),
+            xlab = "Semaine de participation",
+            ylab = "Abondance relative",
+            title = "Abondance par session chaque semaine selon les biogéorégions",
+            line_color = vec_col)
+```
+
+#### 2006-2018
+```{r}
+vec_col <- biogeoregions %>%
+  filter(CODE %in% unique(df_biogeo_old$CODE)) %>%
+  as.data.frame() %>% select(colours) %>% unlist() %>% unname()
+aes_echarts(plot_e = df_biogeo_old %>%
+              group_by(CODE) %>%
+              e_charts(session_week) %>%
+              e_line(ab_rel, symbol='none'),
+            xlab = "Semaine de participation",
+            ylab = "Abondance relative",
+            title = "Abondance par session chaque semaine selon les biogéorégions",
+            line_color = vec_col)
+```
+
+#### 2006-2024
+```{r}
+vec_col <- biogeoregions %>%
+  filter(CODE %in% unique(df_biogeo$CODE)) %>%
+  as.data.frame() %>% select(colours) %>% unlist() %>% unname()
+aes_echarts(plot_e = df_biogeo %>%
+              group_by(CODE) %>%
+              e_charts(session_month) %>%
+              e_line(ab_rel, symbol='none'),
+            xlab = "Mois de participation",
+            ylab = "Abondance relative",
+            title = "Abondance par session chaque semaine selon les biogéorégions",
+            line_color = vec_col, xmax=12, l1=3, l2=6, l3=9, l4=12) 
+```
+
+:::
+::::
 
 * **Titre** : Variations de la présence de l'espèce dans les jardins au cours de l’année.  
 
