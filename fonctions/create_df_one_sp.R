@@ -262,111 +262,44 @@ cat_carte_moy = c("0", "0-1", "2-5", "6-10", "+ de 10")
 
 #----- Indicateurs relatifs -----#
 
-# Calcul du nombre de participations sur toute l'opération par semaine
-nb_part_par_sem = df_opj %>%
-  mutate(session_week = as.integer(session_week)) %>%
-  group_by(session_year, session_week) %>%
-  summarise(nb_part = n_distinct(session_id),
-            .groups = 'drop')
-
-# New
-nb_part_par_sem_new = df_opj_new %>%
-  mutate(session_week = as.integer(session_week)) %>%
-  group_by(session_year, session_week) %>%
-  summarise(nb_part = n_distinct(session_id),
-            .groups = 'drop')
-
-# Old
-nb_part_par_sem_old = df_opj_old %>%
-  mutate(session_week = as.integer(session_week)) %>%
-  group_by(session_year, session_week) %>%
-  summarise(nb_part = n_distinct(session_id),
-            .groups = 'drop')
-
-#----- Abondance relative -----#
+#----- Abondance relative et Fréquence relative -----#
 # All data
-df_ab_rel <- df_sp %>%
+df_ab_rel_freq_rel <- df_sp %>%
   mutate(session_week = as.integer(session_week)) %>%
   group_by(session_year, session_week, session_date) %>%
   summarise(sum_ab = sum(taxon_count),
+            sum_obs = sum(taxon_count != 0),
+            nb_part = n_distinct(session_id),
             .groups = 'drop') %>%        # Somme des abondances
-  left_join(nb_part_par_sem, by = c("session_year" = "session_year",
-                                    "session_week" = "session_week")) %>%
-  mutate(sum_ab_rel = sum_ab/nb_part) %>%  # Division par le nombre de participations
-  arrange(session_week) %>%
-  group_by(session_year, session_week) %>%
-  mutate(col_sup = if_else(n() == 2 & sum_ab == 0, 1, 0)) %>%
-  filter(col_sup == 0) %>%
-  select(!col_sup) %>%
-  ungroup()
-
-# New data
-df_ab_rel_new <- df_sp_new %>%
-  mutate(session_week = as.integer(session_week)) %>%
-  group_by(session_year, session_week, session_date) %>%
-  summarise(sum_ab = sum(taxon_count),
-            .groups = 'drop') %>%        # Somme des abondances
-  left_join(nb_part_par_sem, by = c("session_year" = "session_year",
-                                    "session_week" = "session_week")) %>%
-  mutate(sum_ab_rel = sum_ab/nb_part) %>%  # Division par le nombre de participations
-  arrange(session_week) %>%
-  group_by(session_year, session_week) %>%
-  mutate(col_sup = if_else(n() == 2 & sum_ab == 0, 1, 0)) %>%
-  filter(col_sup == 0) %>%
-  select(!col_sup) %>%
-  ungroup()
-
-# Old data
-df_ab_rel_old <- df_sp_old %>%
-  mutate(session_week = as.integer(session_week)) %>%
-  group_by(session_year, session_week, session_date) %>%
-  summarise(sum_ab = sum(taxon_count),
-            .groups = 'drop') %>%        # Somme des abondances
-  left_join(nb_part_par_sem, by = c("session_year" = "session_year",
-                                    "session_week" = "session_week")) %>%
-  mutate(sum_ab_rel = sum_ab/nb_part) %>%  # Division par le nombre de participations
-  arrange(session_week) %>%
-  group_by(session_year, session_week) %>%
-  mutate(col_sup = if_else(n() == 2 & sum_ab == 0, 1, 0)) %>%
-  filter(col_sup == 0) %>%
-  select(!col_sup) %>%
-  ungroup()
-
-#----- Fréquence relative -----# 
-# All data
-df_freq_rel <- df_sp_ab %>%
-  mutate(session_week = as.integer(session_week)) %>%
-  group_by(session_year, session_week) %>%
-  summarise(sum_obs = n(),
-            .groups = 'drop') %>%       # Somme des observations
-  full_join(nb_part_par_sem, by = c("session_year" = "session_year",
-                                    "session_week" = "session_week")) %>%
-  mutate(freq_rel = if_else(is.na(sum_obs), 0, sum_obs/nb_part)) %>%   # Division par le nombre de participations
+  mutate(sum_ab_rel = sum_ab/nb_part,
+         freq_rel = if_else(is.na(sum_obs), 0, sum_obs/nb_part)) %>%  # Division par le nombre de participations
   arrange(session_week)
 
 # New data
-df_freq_rel_new <- df_sp_ab_new %>%
+df_ab_rel_freq_rel_new <- df_sp_new %>%
   mutate(session_week = as.integer(session_week)) %>%
-  group_by(session_year, session_week) %>%
-  summarise(sum_obs = n(),
-            .groups = 'drop') %>%       # Somme des observations
-  full_join(nb_part_par_sem_new, by = c("session_year" = "session_year",
-                                        "session_week" = "session_week")) %>%
-  mutate(freq_rel = if_else(is.na(sum_obs), 0, sum_obs/nb_part)) %>%   # Division par le nombre de participations
+  group_by(session_year, session_week, session_date) %>%
+  summarise(sum_ab = sum(taxon_count),
+            sum_obs = sum(taxon_count != 0),
+            nb_part = n_distinct(session_id),
+            .groups = 'drop') %>%        # Somme des abondances
+  mutate(sum_ab_rel = sum_ab/nb_part,
+         freq_rel = if_else(is.na(sum_obs), 0, sum_obs/nb_part)) %>%  # Division par le nombre de participations
   arrange(session_week)
 
 # Old data
-df_freq_rel_old <- df_sp_ab_old %>%
+df_ab_rel_freq_rel_old <- df_sp_old %>%
   mutate(session_week = as.integer(session_week)) %>%
-  group_by(session_year, session_week) %>%
-  summarise(sum_obs = n(),
-            .groups = 'drop') %>%       # Somme des observations
-  full_join(nb_part_par_sem_old, by = c("session_year" = "session_year",
-                                        "session_week" = "session_week")) %>%
-  mutate(freq_rel = if_else(is.na(sum_obs), 0, sum_obs/nb_part)) %>%   # Division par le nombre de participations
-  arrange(session_week)
+  group_by(session_year, session_week, session_date) %>%
+  summarise(sum_ab = sum(taxon_count),
+            sum_obs = sum(taxon_count != 0),
+            nb_part = n_distinct(session_id),
+            .groups = 'drop') %>%        # Somme des abondances
+  mutate(sum_ab_rel = sum_ab/nb_part,
+         freq_rel = if_else(is.na(sum_obs), 0, sum_obs/nb_part)) %>%  # Division par le nombre de participations
+  arrange(session_week) 
 
-#----- Abondance relative biogéorégions -----#
+#----- Abondance relative fréquence relative biogéorégions -----#
 # Biogéorégions (code -> Héloïse JEUX)
 invisible(capture.output({biogeoregions = st_read("carte/region_biogeo_fr/region_biogeographique.shp")}))
 biogeoregions = biogeoregions %>%
@@ -390,25 +323,31 @@ fct_biogeo <- function(df, biogeoregions, group = TRUE){
              CODE = if_else(CODE=="MATL", "ATL", CODE),
              CODE = if_else(CODE=="MMED", "MED", CODE)) %>%
       group_by(CODE, session_week) %>%
-      summarise(ab_rel = sum(taxon_count)/n_distinct(session_id), .groups = 'drop')
+      summarise(sum_ab_rel = sum(taxon_count)/n_distinct(session_id),
+                freq_rel = if_else(is.na(sum(taxon_count != 0)), 0,
+                                   sum(taxon_count != 0)/n_distinct(session_id)),
+                .groups = 'drop')
   }
   return(df_biogeo)
 }
 
 # All data
-df_biogeo = fct_biogeo(df = df_opj, biogeoregions = biogeoregions, group = FALSE)
+df_biogeo = fct_biogeo(df = df_sp, biogeoregions = biogeoregions, group = FALSE)
 df_biogeo = df_biogeo %>% filter(!is.na(CODE)) %>%
   mutate(session_month = as.integer(strftime(session_date, "%m")),
          CODE = if_else(CODE=="MATL", "ATL", CODE),
          CODE = if_else(CODE=="MMED", "MED", CODE)) %>%
   group_by(CODE, session_month) %>%
-  summarise(ab_rel = sum(taxon_count)/n_distinct(session_id), .groups = 'drop')
+  summarise(sum_ab_rel = sum(taxon_count)/n_distinct(session_id),
+            freq_rel = if_else(is.na(sum(taxon_count != 0)), 0,
+                               sum(taxon_count != 0)/n_distinct(session_id)),
+            .groups = 'drop')
 
 # New data
-df_biogeo_new = fct_biogeo(df = df_opj_new, biogeoregions = biogeoregions)
+df_biogeo_new = fct_biogeo(df = df_sp_new, biogeoregions = biogeoregions)
 
 # Old data
-df_biogeo_old = fct_biogeo(df = df_opj_old, biogeoregions = biogeoregions)
+df_biogeo_old = fct_biogeo(df = df_sp_old, biogeoregions = biogeoregions)
 
 #----- Présence moyenne -----#
 df_date_wm = df_sp %>%
