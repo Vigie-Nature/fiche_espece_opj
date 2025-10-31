@@ -640,3 +640,24 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 graph_pic(df_pic = df_date_wm_sqrt)
 ```
 
+
+# Test Raster
+
+```{r}
+source("fonctions/function_raster.R")
+```
+
+
+## 10km cat year
+
+### 2006-2024
+```{r}
+grille_valeurs = create_df_raster(df_opj = df_sp, grille = grille10, carte = fr)
+```
+
+```{r}
+fct_raster(df = grille_valeurs, df_carte = fr, fill = "is.butterfly.year")
+```
+
+
+
