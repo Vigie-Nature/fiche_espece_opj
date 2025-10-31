@@ -71,22 +71,22 @@ for (sp_name in liste_principale) {
   
 }
 
-# for (sp_name in liste_principale) {
-# 
-#   tryCatch({
-#     filename = paste0("maquette_espece_", sp_name, ".html")
-# 
-#     quarto_render(input = "maquette_espece.qmd",
-#                   execute_params = list("sp_name" = sp_name),
-#                   output_file = filename)
-# 
-#     file.rename(filename, file.path("out", filename))
-# 
-#   }, error = function(e) {
-#     message(sprintf("Error rendering document_%s.qmd: %s", sp_name, e$message))
-#   })
-# 
-# }
+for (sp_name in liste_principale) {
+
+  tryCatch({
+    filename = paste0("maquette_espece_", sp_name, ".html")
+
+    quarto_render(input = "maquette_espece.qmd",
+                  execute_params = list("sp_name" = sp_name),
+                  output_file = filename)
+
+    file.rename(filename, file.path("out", filename))
+
+  }, error = function(e) {
+    message(sprintf("Error rendering document_%s.qmd: %s", sp_name, e$message))
+  })
+
+}
   
 print(Sys.time() - time)
 
