@@ -57,7 +57,7 @@ table_user_2019 = read.csv2(file = "data/table_user_2019.csv")
 # Jointure des tables
 df_join_obs_part = obpj_participations %>%
   mutate(ytmp = as.integer(strftime(date, "%Y"))) %>%
-  full_join(obpj_observations, by = c("participationpk" = "participation_fk")) %>%
+  full_join(obpj_observations, by = c("participationpk" = "participation_pk")) %>%
   left_join(obpj_pratiques_trait, by = c("zpk" = "zfk")) %>%
   filter(!is.na(date)) %>%
   select(-ytmp)
