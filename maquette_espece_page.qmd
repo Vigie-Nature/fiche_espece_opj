@@ -45,6 +45,24 @@ source("fonctions/create_df_opj.R")
 source("fonctions/create_df_one_sp.R")
 ```
 
+# Filtres généraux
+
+- Suppression des départements en NA
+- Suppression des départements avec plus de 2 caractères (suppression des drom-com)
+- Suppression des dates antérieures au 1 janvier 2005 si données historiques, sinon 1 janvier 2019
+- Suppression des observations ne concernant pas des taxons de la liste principale
+(Machaons,Flambés, Demi-deuils,
+Paon du jour, Vulcain, Belle-dame, Petites tortues,
+Robert-le-diable, Tabac d'Espagne, Silène, Sylvains,
+Souci, Aurores, Piérides blanches,Gazé,Citrons,Amaryllis,
+Myrtil, Procris, Mégères, Tircis, Lycènes bleus,
+Argus verts, Brun des pélargoniums, Cuivré, Hespérides tachetées,
+Hespérides orangées, Moro-sphinx)
+
+2 data frame :
+- un data frame de toutes les observations (df_opj)
+- un data frame avec uniquement le taxon de la fiche (df_sp)
+
 ## Images
 
 ### Photo {height="70%"}
@@ -75,6 +93,8 @@ image_read(file_img)
 
 ## Infobulle 1 (observations)
 
+- Filtre sur les données où l'abondance est strictement supérieure à 0 sur df_sp puis comptage du nombre de lignes
+
 ::: {.valuebox icon="eye" color="#ced600"}
 Nombre de fois où au moins un individu a été observé :
 
@@ -83,12 +103,17 @@ Nombre de fois où au moins un individu a été observé :
 
 ## Infobulle 2 (abondance)
 
+- Filtre sur les données où l'abondance est strictement supérieure à 0 sur df_sp puis somme de toutes les abondances
+
 ::: {.valuebox icon=none color="#5bbdd6"}
 Les participants ont compté `r paste0(label_number(accuracy = 10)(nb_idv_cpt), " ", sp_name, " sur les ", label_number(accuracy = 10)(sum(df_opj$taxon_count)), " papillons au total.")`
 :::
 
 
 ## Distribution abondance entre espèces
+
+- On a besoin des noms des taxons et des abondances correspondantes.
+- On groupe par taxon et on somme les abondances de chaque taxon. On divise ensuite les abondances de chaque taxon par l'abondance totale de tous les taxons.
 
 :::panel-tabset
 ### 2019-2024
@@ -130,7 +155,6 @@ Ajouter des informations sur le graphique pour distinguer les espèces communes 
 
 # Cartographie {orientation="columns"}
 
-
 ::: {.callout-tip title="Fonctionnalités souhaitées"}
 Si on décide d'avoir une partie avec des cartes : carroussel pour les cartes avec à chaque fois la carte et un encart avec un texte explicatif à côté
 :::
@@ -138,6 +162,10 @@ Si on décide d'avoir une partie avec des cartes : carroussel pour les cartes av
 :::panel-tabset
 
 ## Jardins
+
+- On remplace par les raster
+- Depuis le df_sp, on a besoin des jardins, de leur latitude, longitude et de l'abondance du taxon
+- On groupe par jardin et on somme l'abondance. On divise ensuite en deux catégories : observé (> 0) et non observé (= 0)
 
 :::panel-tabset
 #### 2019-2024
@@ -248,6 +276,8 @@ ATTENTION la carte est compliquée à interpréter, dans le sens où des départ
 
 ## Abondance relative
 
+- Depuis df_sp, on groupe par date. On somme l'abondance, le nombre d'observations (toutes les observations où l'abondance du taxon est supérieure à 0), et le nombre de sessions uniques. On calcule ensuite l'abondance relative en divisant la somme d'abondance par le nombre de sessions.
+
 :::panel-tabset
 ### 2019-2024
 ```{r}
@@ -312,6 +342,8 @@ Avoir un slider pour visualiser seulement une fenêtre parmi les années (import
 :::
 
 # Phénologie intra-annuelle
+
+- Même data frame qu'au dessus
 
 ## Indicateurs relatifs
 
@@ -519,6 +551,8 @@ Pouvoir facilement différencier les années sur le graphique, potentiellement c
 <!-- ####################################################################### -->
 
 # Grégarité
+
+- On considère le nombre d'individus vus en même temps comme une catégorie, et on compte le nombre de sessions rattachées à chaque catégorie. Ensuite on divise en trois catégories (1 / 2 à 4 / 5 et +) et dans le graphique on fait un histogramme pour chaque catégorie.
 
 ## Classes d'abondance pour l'espèce
 ```{r}
