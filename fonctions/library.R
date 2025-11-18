@@ -7,6 +7,7 @@ suppressWarnings(suppressMessages(library(ggplot2))) # 3.5.1
 suppressWarnings(suppressMessages(library(gridExtra))) # 2.3
 library(here) # 1.0.1
 suppressWarnings(suppressMessages(library(httr))) # 1.4.7
+library(ISOweek)
 library(knitr) # 1.49
 suppressWarnings(suppressMessages(library(lubridate))) # 1.9.3
 suppressWarnings(suppressMessages(library(magick))) # 2.8.5
