@@ -9,9 +9,7 @@
 # Script Name:    fonctions/create_df_opj.R
 #
 # Script Description:   Création du data frame opération papillons avec toutes
-#   les espèces. Interrogation de la base de données mosaic et enregistrement
-#   dans un fichier rds. Si le fichier existe déjà et qu'il date de moins d'une
-#   semaine, celui-ci est directement lu.
+#   les espèces. Requête sur le serveur ftp Vigie-Nature
 #
 #
 # ------------------------------------
@@ -19,41 +17,34 @@
 library(dplyr)
 library(here)
 require(httr)
+library(readr)
 
 if (Sys.getenv("CI") != "true") {
   readRenviron(".env")
 }
-source("fonctions/function_import_from_mosaic.R")
+
 source("fonctions/var.R")
-is_intranet <- function(url = "https://intranet.mnhn.fr/") {
-  tryCatch({
-    response <- httr::GET(url)
-    return(httr::status_code(response) == 200)
-  }, error = function(e) {
-    return(FALSE)
-  })
+
+# Requête sur la base de données ftp
+# - Données récentes
+# print("Requête des données récentes")
+if (!exists("req")) {
+  req <- GET(
+    paste0(Sys.getenv('SITE_NAME'), "export_opj.csv"),
+    authenticate(Sys.getenv('FTP_USER'), Sys.getenv('FTP_PASSWORD'), type = "basic")
+  )
+}
+
+# - Données historiques
+# print("Requête des données ensemble de la période")
+if (!exists("req_old")) {
+  req_old <- GET(
+    paste0(Sys.getenv('SITE_NAME'), "export_opj_history.csv"),
+    authenticate(Sys.getenv('FTP_USER'), Sys.getenv('FTP_PASSWORD'), type = "basic")
+  )
 }
 
 ### Dataframe des données pour toutes les espèces
 # -----------------------------------------------
-
-# Mise à jour 
-if ((!file.exists("data/rdata/df_opj.rds") |                                  # Si le fichier n'existe pas OU
-    (strftime(Sys.Date(), "%A") == "lundi" &                                    #  [que la date du jour est un lundi ET
-     Sys.Date()-as.Date(file.info("data/rdata/df_opj.rds")$ctime) > 5)) &    #   que le fichier a plus de 5 jours
-    is_intranet()) {
-  # Lecture depuis la base mosaic
-  df_opj = import_from_mosaic(query = read_sql_query("sql/export_a_plat_OPJ.sql"),
-                                 database_name = "spgp")
-  
-  # On sauvegarde si on ne se trouve pas sur le serveur gitlab
-  if (Sys.getenv("CI") != "true") {
-    # Sauvegarde du df en format RDS
-    saveRDS(object = df_opj, file = "data/rdata/df_opj.rds")
-  }
-
-}else{
-  # Lecture du fichier RDS
-  df_opj = readRDS("data/rdata/df_opj.rds")
-}
-
+df_data <- readr::read_csv2(content(req, "raw"))
+df_old_data <- readr::read_csv2(content(req_old, "raw"))
