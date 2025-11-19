@@ -4,6 +4,7 @@ library(here)
 library(quarto)
 library(stringr)
 
+source("fonctions/library.R")
 
 # Fonctions
 if (Sys.getenv("CI") != "true") {
