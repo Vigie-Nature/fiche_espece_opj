@@ -2,7 +2,7 @@
 suppressWarnings(suppressMessages(library(cowplot))) # 1.1.3
 suppressWarnings(suppressMessages(library(dplyr))) # 1.1.4
 suppressWarnings(suppressMessages(library(echarts4r))) # 0.4.5
-suppressWarnings(suppressMessages(library(ggimage))) # 0.3.3
+#suppressWarnings(suppressMessages(library(ggimage))) # 0.3.3
 suppressWarnings(suppressMessages(library(ggplot2))) # 3.5.1 
 suppressWarnings(suppressMessages(library(gridExtra))) # 2.3
 library(here) # 1.0.1
