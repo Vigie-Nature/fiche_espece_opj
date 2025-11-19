@@ -33,6 +33,7 @@ carte/altitude/
 
 carte/region_biogeo_fr/region_biogeographique.*
 !carte/region_biogeo_fr/region_biogeographique.shp
+!carte/contour-des-regions.geojson
 
 data/img/*
 !data/img/papillon.png
