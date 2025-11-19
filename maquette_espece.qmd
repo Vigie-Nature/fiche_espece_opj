@@ -6,10 +6,10 @@ format:
   dashboard:
     scrolling: false
     nav-buttons:
-      - icon: gitlab
-        href: https://outils-patrinat.mnhn.fr/gitlab/vigie-nature/fiche_espece_opj
+      - icon: github
+        href: https://github.com/maelpretet/test_github_pages
       - icon: arrow-bar-left
-        href: ../programs/accueil.html
+        href: index.html
     embed-resources: true
 execute:
   echo: false
@@ -656,7 +656,7 @@ grille_valeurs = create_df_raster(df_opj = df_sp, grille = grille10, carte = fr)
 ```
 
 ```{r}
-fct_raster(df = grille_valeurs, df_carte = fr, fill = "is.butterfly.year")
+fct_raster(df = grille_valeurs, df_carte = fr, fill = "is.butterfly.2")
 ```
 
 
