@@ -4,6 +4,7 @@ library(here)
 library(quarto)
 library(stringr)
 
+
 # Fonctions
 if (Sys.getenv("CI") != "true") {
   readRenviron(".env")
@@ -27,24 +28,6 @@ if (Sys.getenv("CI") == "true") {
 }
 
 
-# Boucle sur les noms d'espèces
-# for (sp_name in liste_principale) {
-#   
-#   tryCatch({
-#     filename = paste0("maquette_espece_page_", sp_name, ".html")
-#     
-#     quarto_render(input = "maquette_espece_page.qmd",
-#                   execute_params = list("sp_name" = sp_name),
-#                   output_file = filename)
-#     
-#     file.rename(filename, file.path("out", filename))
-#   
-#   }, error = function(e) {
-#     message(sprintf("Error rendering document_%s.qmd: %s", sp_name, e$message))
-#   })
-#   
-# }
-
 time = Sys.time()
 # Boucle sur les noms d'espèces
 for (sp_name in liste_principale) {
@@ -65,6 +48,4 @@ for (sp_name in liste_principale) {
 }
 
 print(Sys.time() - time)
-
-
 
