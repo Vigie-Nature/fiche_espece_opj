@@ -341,47 +341,47 @@ aes_echarts(plot_e = df_ab_rel_freq_rel %>%
 :::panel-tabset
 #### 2019-2024
 ```{r}
-vec_col <- biogeoregions %>%
-  filter(CODE %in% unique(df_biogeo_new$CODE)) %>%
-  as.data.frame() %>% select(colours) %>% unlist() %>% unname()
-aes_echarts(plot_e = df_biogeo_new %>%
-              group_by(CODE) %>%
-              e_charts(session_week) %>%
-              e_line(freq_rel, symbol='none'),
-            xlab = "Semaine de participation",
-            ylab = "Fréquence relative",
-            title = "Fréquence par session chaque semaine selon les biogéorégions",
-            line_color = vec_col)
+# vec_col <- biogeoregions %>%
+#   filter(CODE %in% unique(df_biogeo_new$CODE)) %>%
+#   as.data.frame() %>% select(colours) %>% unlist() %>% unname()
+# aes_echarts(plot_e = df_biogeo_new %>%
+#               group_by(CODE) %>%
+#               e_charts(session_week) %>%
+#               e_line(freq_rel, symbol='none'),
+#             xlab = "Semaine de participation",
+#             ylab = "Fréquence relative",
+#             title = "Fréquence par session chaque semaine selon les biogéorégions",
+#             line_color = vec_col)
 ```
 
 #### 2006-2018
 ```{r}
-vec_col <- biogeoregions %>%
-  filter(CODE %in% unique(df_biogeo_old$CODE)) %>%
-  as.data.frame() %>% select(colours) %>% unlist() %>% unname()
-aes_echarts(plot_e = df_biogeo_old %>%
-              group_by(CODE) %>%
-              e_charts(session_week) %>%
-              e_line(freq_rel, symbol='none'),
-            xlab = "Semaine de participation",
-            ylab = "Fréquence relative",
-            title = "Fréquence par session chaque semaine selon les biogéorégions",
-            line_color = vec_col)
+# vec_col <- biogeoregions %>%
+#   filter(CODE %in% unique(df_biogeo_old$CODE)) %>%
+#   as.data.frame() %>% select(colours) %>% unlist() %>% unname()
+# aes_echarts(plot_e = df_biogeo_old %>%
+#               group_by(CODE) %>%
+#               e_charts(session_week) %>%
+#               e_line(freq_rel, symbol='none'),
+#             xlab = "Semaine de participation",
+#             ylab = "Fréquence relative",
+#             title = "Fréquence par session chaque semaine selon les biogéorégions",
+#             line_color = vec_col)
 ```
 
 #### 2006-2024
 ```{r}
-vec_col <- biogeoregions %>%
-  filter(CODE %in% unique(df_biogeo$CODE)) %>%
-  as.data.frame() %>% select(colours) %>% unlist() %>% unname()
-aes_echarts(plot_e = df_biogeo %>%
-              group_by(CODE) %>%
-              e_charts(session_month) %>%
-              e_line(freq_rel, symbol='none'),
-            xlab = "Mois de participation",
-            ylab = "Fréquence relative",
-            title = "Fréquence par session chaque semaine selon les biogéorégions",
-            line_color = vec_col, xmax=12, l1=3, l2=6, l3=9, l4=12) 
+# vec_col <- biogeoregions %>%
+#   filter(CODE %in% unique(df_biogeo$CODE)) %>%
+#   as.data.frame() %>% select(colours) %>% unlist() %>% unname()
+# aes_echarts(plot_e = df_biogeo %>%
+#               group_by(CODE) %>%
+#               e_charts(session_month) %>%
+#               e_line(freq_rel, symbol='none'),
+#             xlab = "Mois de participation",
+#             ylab = "Fréquence relative",
+#             title = "Fréquence par session chaque semaine selon les biogéorégions",
+#             line_color = vec_col, xmax=12, l1=3, l2=6, l3=9, l4=12) 
 ```
 :::
 
@@ -389,47 +389,47 @@ aes_echarts(plot_e = df_biogeo %>%
 :::panel-tabset
 #### 2019-2024
 ```{r}
-vec_col <- biogeoregions %>%
-  filter(CODE %in% unique(df_biogeo_new$CODE)) %>%
-  as.data.frame() %>% select(colours) %>% unlist() %>% unname()
-aes_echarts(plot_e = df_biogeo_new %>%
-              group_by(CODE) %>%
-              e_charts(session_week) %>%
-              e_line(sum_ab_rel, symbol='none'),
-            xlab = "Semaine de participation",
-            ylab = "Abondance relative",
-            title = "Abondance par session chaque semaine selon les biogéorégions",
-            line_color = vec_col)
+# vec_col <- biogeoregions %>%
+#   filter(CODE %in% unique(df_biogeo_new$CODE)) %>%
+#   as.data.frame() %>% select(colours) %>% unlist() %>% unname()
+# aes_echarts(plot_e = df_biogeo_new %>%
+#               group_by(CODE) %>%
+#               e_charts(session_week) %>%
+#               e_line(sum_ab_rel, symbol='none'),
+#             xlab = "Semaine de participation",
+#             ylab = "Abondance relative",
+#             title = "Abondance par session chaque semaine selon les biogéorégions",
+#             line_color = vec_col)
 ```
 
 #### 2006-2018
 ```{r}
-vec_col <- biogeoregions %>%
-  filter(CODE %in% unique(df_biogeo_old$CODE)) %>%
-  as.data.frame() %>% select(colours) %>% unlist() %>% unname()
-aes_echarts(plot_e = df_biogeo_old %>%
-              group_by(CODE) %>%
-              e_charts(session_week) %>%
-              e_line(sum_ab_rel, symbol='none'),
-            xlab = "Semaine de participation",
-            ylab = "Abondance relative",
-            title = "Abondance par session chaque semaine selon les biogéorégions",
-            line_color = vec_col)
+# vec_col <- biogeoregions %>%
+#   filter(CODE %in% unique(df_biogeo_old$CODE)) %>%
+#   as.data.frame() %>% select(colours) %>% unlist() %>% unname()
+# aes_echarts(plot_e = df_biogeo_old %>%
+#               group_by(CODE) %>%
+#               e_charts(session_week) %>%
+#               e_line(sum_ab_rel, symbol='none'),
+#             xlab = "Semaine de participation",
+#             ylab = "Abondance relative",
+#             title = "Abondance par session chaque semaine selon les biogéorégions",
+#             line_color = vec_col)
 ```
 
 #### 2006-2024
 ```{r}
-vec_col <- biogeoregions %>%
-  filter(CODE %in% unique(df_biogeo$CODE)) %>%
-  as.data.frame() %>% select(colours) %>% unlist() %>% unname()
-aes_echarts(plot_e = df_biogeo %>%
-              group_by(CODE) %>%
-              e_charts(session_month) %>%
-              e_line(sum_ab_rel, symbol='none'),
-            xlab = "Mois de participation",
-            ylab = "Abondance relative",
-            title = "Abondance par session chaque semaine selon les biogéorégions",
-            line_color = vec_col, xmax=12, l1=3, l2=6, l3=9, l4=12) 
+# vec_col <- biogeoregions %>%
+#   filter(CODE %in% unique(df_biogeo$CODE)) %>%
+#   as.data.frame() %>% select(colours) %>% unlist() %>% unname()
+# aes_echarts(plot_e = df_biogeo %>%
+#               group_by(CODE) %>%
+#               e_charts(session_month) %>%
+#               e_line(sum_ab_rel, symbol='none'),
+#             xlab = "Mois de participation",
+#             ylab = "Abondance relative",
+#             title = "Abondance par session chaque semaine selon les biogéorégions",
+#             line_color = vec_col, xmax=12, l1=3, l2=6, l3=9, l4=12) 
 ```
 
 :::
