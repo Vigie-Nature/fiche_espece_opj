@@ -1,0 +1,44 @@
+name: Build and Deploy Quarto (Docker)
+
+on:
+  workflow_dispatch:        # Permet un lancement manuel
+  schedule:
+    - cron: '0 0 1 * *'   
+
+jobs:
+  render-and-deploy:
+    runs-on: ubuntu-latest
+
+    container:
+      image: mpretet/image_fiche_opj:latest
+      
+    env:
+      SITE_NAME: ${{ secrets.SITE_NAME }}
+      FTP_USER: ${{ secrets.FTP_USER }}
+      FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+
+    steps:
+      # Récupération du code du dépôt
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Lancement du script R
+      - name: Run R script to generate Quarto outputs
+        run: Rscript programs/boucle_quarto.R
+
+      # Upload des fichiers comme artéfacts
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: quarto-output
+          path: docs/
+          overwrite: true
+          retention-days: 40
+
+      # Déploiement automatique sur GitHub Pages
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: docs
+          disable_nojekyll: true

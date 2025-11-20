@@ -1,4 +1,5 @@
 *.Rproj
+.Rprofile
 .Rproj.user
 .Rhistory
 .RData
@@ -11,11 +12,28 @@ data/history/
 **/*.html
 html/
 out/graphiques/
+*/*test*
+*/test*/
 # Ignorer tous les fichiers .jpg
 data/photos/*.jpg
 data/photos/*.png
 # Ne pas ignorer Amaryllis.jpg
 !data/photos/Amaryllis.jpg
+*/*.geojson
+data/donnees_historiques/
+data/articles_pour_espece.csv
+data/extract_opj_amaryllis.csv
+data/rdata/df_opj.csv
+data/rdata/export_opj_history.csv
+data/rdata/test_opj.csv
+out/data_opj_ovidal.csv
+data/table_user_2019.csv
+programs/histo
+carte/altitude/
+
+carte/region_biogeo_fr/region_biogeographique.*
+!carte/region_biogeo_fr/region_biogeographique.shp
+!carte/contour-des-regions.geojson
 
 data/img/*
 !data/img/papillon.png

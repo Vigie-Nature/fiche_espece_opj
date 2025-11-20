@@ -19,6 +19,8 @@ render_script:
   stage: script_R
   script:
     - Rscript programs/boucle_quarto.R
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
   artifacts:
     paths:
       - out/

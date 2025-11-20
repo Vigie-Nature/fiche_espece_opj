@@ -1,7 +1,7 @@
 ---
 params:
-  sp_name: "Amaryllis"
-title: "Maquette espèce"
+  sp_name: "Paon du jour"
+title: "Fiche espèce - `r params$sp_name`"
 format:
   html:
     toc: true
@@ -22,11 +22,10 @@ execute:
 # Variables constantes
 sp_name = params$sp_name
 source("fonctions/var.R")
+is.histo = TRUE
 ```
 
 <!-- ####################################################################### -->
-
-# `{r} params$sp_name` {orientation="columns"}
 
 ```{r}
 # Librairies
@@ -42,9 +41,27 @@ if (Sys.getenv("CI") != "true") {
 source("fonctions/function_graphics.R")
 source("fonctions/function_import_from_mosaic.R")
 # Création des data frame
-source("fonctions/create_df_all_sp.R")
+source("fonctions/create_df_opj.R")
 source("fonctions/create_df_one_sp.R")
 ```
+
+# Filtres généraux
+
+- Suppression des départements en NA
+- Suppression des départements avec plus de 2 caractères (suppression des drom-com)
+- Suppression des dates antérieures au 1 janvier 2005 si données historiques, sinon 1 janvier 2019
+- Suppression des observations ne concernant pas des taxons de la liste principale
+(Machaons,Flambés, Demi-deuils,
+Paon du jour, Vulcain, Belle-dame, Petites tortues,
+Robert-le-diable, Tabac d'Espagne, Silène, Sylvains,
+Souci, Aurores, Piérides blanches,Gazé,Citrons,Amaryllis,
+Myrtil, Procris, Mégères, Tircis, Lycènes bleus,
+Argus verts, Brun des pélargoniums, Cuivré, Hespérides tachetées,
+Hespérides orangées, Moro-sphinx)
+
+2 data frame :
+- un data frame de toutes les observations (df_opj)
+- un data frame avec uniquement le taxon de la fiche (df_sp)
 
 ## Images
 
@@ -68,80 +85,190 @@ image_read(file_img)
 
 ## Texte
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+
 
 <!-- ####################################################################### -->
 
-# Chiffres clés {orientation="columns"}
+# Chiffres clés
 
-## Texte {width="40%"}
+## Infobulle 1 (observations)
 
-### Infobulle
+- Filtre sur les données où l'abondance est strictement supérieure à 0 sur df_sp puis comptage du nombre de lignes
 
 ::: {.valuebox icon="eye" color="#ced600"}
 Nombre de fois où au moins un individu a été observé :
 
-`{r} paste0(label_number(accuracy = 10)(nb_obs_idv), " sur ", label_number(accuracy = 10)(nrow(df_sp)), " observations")`
+`r paste0(label_number(accuracy = 10)(nb_obs_idv), " sur ", label_number(accuracy = 10)(nrow(df_sp)), " observations")`
 :::
 
-### Infobulle
+## Infobulle 2 (abondance)
+
+- Filtre sur les données où l'abondance est strictement supérieure à 0 sur df_sp puis somme de toutes les abondances
 
 ::: {.valuebox icon=none color="#5bbdd6"}
-Les participants ont compté `{r} paste0(label_number(accuracy = 10)(nb_idv_cpt), " ", sp_name, " sur les ", label_number(accuracy = 10)(sum(df_all_sp$abondance)), " papillons au total.")`
+Les participants ont compté `r paste0(label_number(accuracy = 10)(nb_idv_cpt), " ", sp_name, " sur les ", label_number(accuracy = 10)(sum(df_opj$taxon_count)), " papillons au total.")`
 :::
 
-### Explication {width="60%"}
 
-Classement : `{r} paste0(which(rev(df_repartition$nom_espece) == sp_name), "/", length(df_repartition$nom_espece))`
+## Distribution abondance entre espèces
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+- On a besoin des noms des taxons et des abondances correspondantes.
+- On groupe par taxon et on somme les abondances de chaque taxon. On divise ensuite les abondances de chaque taxon par l'abondance totale de tous les taxons.
 
-## Graphiques {height="60%"}
-
+:::panel-tabset
+### 2019-2024
 ```{r}
-gg_histo_plotly(df_hp = df_repartition, limits = df_repartition$nom_espece,
+gg_histo_plotly(df_hp = df_repartition, limits = df_repartition$taxon,
                 couleur = df_repartition$couleur)
-
-# print("plotly repartition espece")
 ```
+### 2006-2018
+```{r}
+gg_histo_plotly(df_hp = df_repartition_old, limits = df_repartition_old$taxon,
+                couleur = df_repartition_old$couleur)
+```
+### 2006-2024
+```{r}
+gg_histo_plotly(df_hp = df_repartition_new_old, limits = df_repartition_new_old$taxon,
+                couleur = df_repartition_new_old$couleur)
+```
+:::
+
+* **Titre :** Répartition de l’abondance observée selon les différentes espèces et groupes d’espèces parmi toutes les observations de l’Opération papillons.
+
+* **Explication :** Quelles sont les espèces ou groupes d'espèces les plus observés par les participants et participantes ? On cherche ici à montrer la part que représente chaque espèce si l'on considère l'ensemble des individus comptés dans l'Opération papillons. Sur cette figure chacune des barres représente le pourcentage de l'abondance totale observée pour une espèce donnée.
+
+En lisant la figure on peut observer que le classement de l'espèce parmi les 28 espèces de la liste principale : `r paste0(which(rev(df_repartition$taxon) == sp_name), "/", length(df_repartition$taxon))`
+
+::: {.callout-warning title="Interprétation"}
+Ajouter une explication sur les Piérides Blanches qui constituent la majeure partie des observations ? Ajouter interprétation ad hoc pour l’espèce ciblée ?
+
+Ajouter des éléments en lien avec les risques de confusion ? Et le fait qu'on prend en compte l'ensemble des données, dont les participations "one shot" c'est-à-dire les participant.es qui n'ont enregistré qu'une participation
+:::
+
+::: {.callout-tip title="Fonctionnalités souhaitées"}
+Avoir de l’information précise en survolant une colonne, comme par exemple la valeur exacte du pourcentage, dans une phrase du style “Les Lycènes bleus regroupent XX% des individus comptés dans le cadre de l’Opération papillons”.
+
+Ajouter des informations sur le graphique pour distinguer les espèces communes des espèces rares ? (comme c'est le cas pour l'instant avec le dégradé de bleu)
+:::
+
+
 
 # Cartographie {orientation="columns"}
 
-## Textes {width="30%"}
-
-### Texte 1
-
-::: {.callout-note icon=false}
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+::: {.callout-tip title="Fonctionnalités souhaitées"}
+Si on décide d'avoir une partie avec des cartes : carroussel pour les cartes avec à chaque fois la carte et un encart avec un texte explicatif à côté
 :::
-
-### Texte 2
-
-::: {.callout-note icon=false}
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-:::
-
-## Graphiques {width="70%"}
 
 :::panel-tabset
 
-### Jardins
+## Jardins
 
+- On remplace par les raster
+- Depuis le df_sp, on a besoin des jardins, de leur latitude, longitude et de l'abondance du taxon
+- On groupe par jardin et on somme l'abondance. On divise ensuite en deux catégories : observé (> 0) et non observé (= 0)
+
+:::panel-tabset
+#### 2019-2024
 ```{r}
 carte_point_jardin(france = france, df_jp = df_jardin_point,
                    title = paste0("Positions des jardins ayant participé entre ",
-                                  strftime(min(df_sp$date_collection), "%Y"), " et ",
-                                  strftime(max(df_sp$date_collection), "%Y")))
+                                  strftime(min(df_sp$session_date), "%Y"), " et ",
+                                  strftime(max(df_sp$session_date), "%Y")))
 ```
-
-### Abondance
-
+#### 2006-2018
 ```{r}
-print(carte_ab(shape_map = france, fill_map = df_dep$cl_qual, fill_color = couleurs,
+carte_point_jardin(france = france, df_jp = df_jardin_point_old,
+                   title = paste0("Positions des jardins ayant participé entre ",
+                                  strftime(min(df_sp$session_date), "%Y"), " et ",
+                                  strftime(max(df_sp$session_date), "%Y")))
+```
+#### 2006-2024
+```{r}
+carte_point_jardin(france = france, df_jp = df_jardin_point_new_old,
+                   title = paste0("Positions des jardins ayant participé entre ",
+                                  strftime(min(df_sp$session_date), "%Y"), " et ",
+                                  strftime(max(df_sp$session_date), "%Y")))
+```
+:::
+
+* **Titre** : Carte des jardins participants à l’Opération papillons ayant observé l’espèce au moins une fois
+
+* **Explication** : Où observe-t-on cette espèce ? Chaque point sur la carte représente un jardin participant à l’Opération papillons. Les points rouges représentent les jardins où l’espèce n’a pas été observée, et les points verts représentent les jardins ayant observé au moins une fois cette espèce. 
+
+::: {.callout-warning title="Interprétation"}
+Interprétation : Insister sur le fait que certains jardins n’ont participé qu’une seule semaine, et faire le lien avec la probabilité d’observation. 
+
+Faire le lien avec ce qu’on connaît de la distribution de l’espèce ? 
+:::
+
+::: {.callout-tip title="Fonctionnalités souhaitées"}
+Pouvoir zoomer/dézoomer sur la carte. Afficher de l’information en survolant/cliquant sur un point avec par exemple le nombre d’année de participation et le nombre de sessions d’observation (nombre de fois où le jardin a transmis les données).  
+:::
+
+::::panel-tabset
+## Abondance par département
+
+:::panel-tabset
+#### 2019-2024
+```{r}
+print(carte_ab(shape_map = france, fill_map = df_dep_new$cl_qual, fill_color = couleurs,
          fill_cat = cat_carte_tendance_moy, fill_title = "Abondance relative entre 2019 et 2024",
          map_title = paste0("Carte de distribution de l'abondance relative de l'espèce ", sp_name)))
 
 ```
+#### 2006-2018
+```{r}
+print(carte_ab(shape_map = france, fill_map = df_dep_old$cl_qual, fill_color = couleurs,
+         fill_cat = cat_carte_tendance_moy, fill_title = "Abondance relative entre 2006 et 2018",
+         map_title = paste0("Carte de distribution de l'abondance relative de l'espèce ", sp_name)))
+
+```
+#### 2006-2024
+```{r}
+print(carte_ab(shape_map = france, fill_map = df_dep$cl_qual, fill_color = couleurs,
+         fill_cat = cat_carte_tendance_moy, fill_title = "Abondance relative entre 2006 et 2024",
+         map_title = paste0("Carte de distribution de l'abondance relative de l'espèce ", sp_name)))
+
+```
+:::
+
+## Abondance par région
+
+:::panel-tabset
+#### 2019-2024
+```{r}
+print(carte_ab(shape_map = france_reg, fill_map = df_reg_new$cl_qual, fill_color = couleurs,
+         fill_cat = cat_carte_tendance_moy, fill_title = "Abondance relative entre 2019 et 2024",
+         map_title = paste0("Carte de distribution de l'abondance relative de l'espèce ", sp_name)))
+
+```
+
+#### 2006-2018
+```{r}
+print(carte_ab(shape_map = france_reg, fill_map = df_reg_old$cl_qual, fill_color = couleurs,
+         fill_cat = cat_carte_tendance_moy, fill_title = "Abondance relative entre 2006 et 2018",
+         map_title = paste0("Carte de distribution de l'abondance relative de l'espèce ", sp_name)))
+
+```
+
+#### 2006-2024
+```{r}
+print(carte_ab(shape_map = france_reg, fill_map = df_reg$cl_qual, fill_color = couleurs,
+         fill_cat = cat_carte_tendance_moy, fill_title = "Abondance relative entre 2006 et 2024",
+         map_title = paste0("Carte de distribution de l'abondance relative de l'espèce ", sp_name)))
+
+```
+:::
+
+::::
+
+* **Titre** : Carte de la distribution de l’abondance relative de cette espèce par département. 
+
+* **Explication** : La carte montre pour chaque département l’abondance relative de cette espèce, c’est à dire le nombre d’individus renseigné divisé par le nombre de jardins actifs dans le département. 
+
+::: {.callout-warning title="Interprétation"}
+ATTENTION la carte est compliquée à interpréter, dans le sens où des départements avec des niveaux très faibles de participation auront tendance à montrer des valeurs plus élevées d'abondance relative. C’est pourquoi on a des abondances plus fortes sur la diagonale du vide. 
+:::
 
 :::
 
@@ -149,100 +276,325 @@ print(carte_ab(shape_map = france, fill_map = df_dep$cl_qual, fill_color = coule
 
 ## Abondance relative
 
+- Depuis df_sp, on groupe par date. On somme l'abondance, le nombre d'observations (toutes les observations où l'abondance du taxon est supérieure à 0), et le nombre de sessions uniques. On calcule ensuite l'abondance relative en divisant la somme d'abondance par le nombre de sessions.
+
+:::panel-tabset
+### 2019-2024
 ```{r}
 #| title: "Abondance de l'espèce et pression d'échantillonnage"
 
-datemin = min(as.Date(df_sp$date_collection)) - 7
-datemax = max(as.Date(df_sp$date_collection)) + 7
+datemin = as.Date("2019-01-01") - 7
+datemax = max(df_sp$session_date) + 7
 
-gg1 <- gg_histo(df_histo = df_ab_rel %>% mutate(date = as.Date(date_collection)) ,
+gg1 <- gg_histo(df_histo = df_ab_rel_freq_rel %>% filter(session_year >= 2019),
                 y = "sum_ab_rel", dmin = datemin, dmax = datemax,
                 ytxt = "Abondance relative", title = "Abondance relative par semaine")
-
-gg2 <- gg_line(df_line = df_nb_obs_date, dmin = datemin, dmax = datemax, ytxt = "Sessions",
+gg2 <- gg_line(df_line = df_nb_obs_date %>% filter(date >= "2019-01-01"),
+               dmin = datemin, dmax = datemax, ytxt = "Sessions",
                title = "Nombre de sessions d'observation par semaine")
 
 grid.arrange(gg1, gg2, ncol = 1, heights=c(2, 1))
 
 ```
+### 2006-2018
+```{r}
+#| title: "Abondance de l'espèce et pression d'échantillonnage"
 
-## Texte explicatif
+datemin = min(df_sp$session_date) - 7
+datemax = as.Date("2019-01-01") + 7
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+gg1 <- gg_histo(df_histo = df_ab_rel_freq_rel %>% filter(session_year < 2019),
+                y = "sum_ab_rel", dmin = datemin, dmax = datemax,
+                ytxt = "Abondance relative", title = "Abondance relative par semaine")
+gg2 <- gg_line(df_line = df_nb_obs_date %>% filter(date < "2019-01-01"),
+               dmin = datemin, dmax = datemax, ytxt = "Sessions",
+               title = "Nombre de sessions d'observation par semaine")
 
-# Phénologie intra-annuelle {orientation="columns"}
+grid.arrange(gg1, gg2, ncol = 1, heights=c(2, 1))
+```
+### 2006-2024
+```{r}
+#| title: "Abondance de l'espèce et pression d'échantillonnage"
 
-## Indicateurs relatifs {width="70%"}
+datemin = min(df_sp$session_date) - 7
+datemax = max(df_sp$session_date) + 7
+
+gg1 <- gg_histo(df_histo = df_ab_rel_freq_rel,
+                y = "sum_ab_rel", dmin = datemin, dmax = datemax,
+                ytxt = "Abondance relative", title = "Abondance relative par semaine")
+gg2 <- gg_line(df_line = df_nb_obs_date, dmin = datemin, dmax = datemax, ytxt = "Sessions",
+               title = "Nombre de sessions d'observation par semaine")
+
+grid.arrange(gg1, gg2, ncol = 1, heights=c(2, 1))
+```
+:::
+
+* **Titre** : Variations de l’abondance de l'espèce au cours du temps (en rouge en haut), et variations du nombre de participations (en orange en bas) 
+
+* **Explication** : Les deux graphiques permettent de visualiser la variation de l’abondance observée pour l'espèce au fil du temps. Les variations sont mesurées à la semaine. Nous affichons ici l’abondance “relative” c’est à dire en prenant en compte le nombre de jardins ayant participé cette semaine. Comme le montre le graphique du bas, le nombre de participations individuelles à l’Opération papillons varie au cours de l’année, atteignant souvent un pic durant l’été, à l’exception de l’année 2020 qui a connu une forte participation pendant le premier confinement dû à la pandémie. Pour rendre l’information comparable d’une semaine à l’autre et entre les années, nous divisions, chaque semaine, le nombre d’individus renseignés par le nombre de jardins actifs. 
+
+::: {.callout-warning title="Interprétation"}
+Ici il faudra décliner en fonction des espèces et des patterns (ex : Belle-Dame avec les fortes variations inter-annuelles)
+:::
+
+::: {.callout-tip title="Fonctionnalités souhaitées"}
+Avoir un slider pour visualiser seulement une fenêtre parmi les années (important si on arrive à intégrer l’ensemble des données). 
+:::
+
+# Phénologie intra-annuelle
+
+- Même data frame qu'au dessus
+
+## Indicateurs relatifs
 
 ```{r}
 colfunc <- colorRampPalette(c("#a4dbff", "#0b6cab"))
-vec_col = c(colfunc(length(unique(df_sp$annee))-1), "#f40b0b")
 ```
-
-### Phénologie
+::::panel-tabset
+### Fréquence relative
+:::panel-tabset
+#### 2019-2024
 ```{r}
-aes_echarts(plot_e = df_freq_rel %>%
-              e_charts(num_semaine) %>%
+vec_col = c(colfunc(length(unique(df_sp_new$session_year))-1), "#f40b0b")
+aes_echarts(plot_e = df_ab_rel_freq_rel_new %>%
+              group_by(session_year) %>%
+              e_charts(session_week) %>%
               e_line(freq_rel, symbol='none'),
             xlab = "Semaine de participation",
             ylab = "Fréquence relative",
             title = "Nombre d'observations par jardin chaque semaine selon les années",
             line_color = vec_col)
+```
+#### 2006-2018
+```{r}
+vec_col = c(colfunc(length(unique(df_sp_old$session_year))-1), "#f40b0b")
+aes_echarts(plot_e = df_ab_rel_freq_rel_old %>%
+              group_by(session_year) %>%
+              e_charts(session_week) %>%
+              e_line(freq_rel, symbol='none'),
+            xlab = "Semaine de participation",
+            ylab = "Fréquence relative",
+            title = "Nombre d'observations par jardin chaque semaine selon les années",
+            line_color = vec_col)
+```
+#### 2006-2024
+```{r}
+vec_col = c(colfunc(length(unique(df_sp$session_year))-1), "#f40b0b")
+aes_echarts(plot_e = df_ab_rel_freq_rel %>%
+              group_by(session_year) %>%
+              e_charts(session_week) %>%
+              e_line(freq_rel, symbol='none'),
+            xlab = "Semaine de participation",
+            ylab = "Fréquence relative",
+            title = "Nombre d'observations par jardin chaque semaine selon les années",
+            line_color = vec_col)
+```
+:::
 
-# print("Echarts phénologie")
+### Abondance relative
+:::panel-tabset
+#### 2019-2024
+```{r}
+vec_col = c(colfunc(length(unique(df_sp_new$session_year))-1), "#f40b0b")
+aes_echarts(plot_e = df_ab_rel_freq_rel_new %>%
+              group_by(session_year) %>%
+              e_charts(session_week) %>%
+              e_line(sum_ab_rel, symbol='none'),
+            xlab = "Semaine de participation",
+            ylab = "Abondance relative",
+            title = "Abondance par session chaque semaine selon les années",
+            line_color = vec_col)
 ```
 
+#### 2006-2018
+```{r}
+vec_col = c(colfunc(length(unique(df_sp_old$session_year))-1), "#f40b0b")
+aes_echarts(plot_e = df_ab_rel_freq_rel_old %>%
+              group_by(session_year) %>%
+              e_charts(session_week) %>%
+              e_line(sum_ab_rel, symbol='none'),
+            xlab = "Semaine de participation",
+            ylab = "Abondance relative",
+            title = "Abondance par session chaque semaine selon les années",
+            line_color = vec_col)
+```
 
-## Texte {width="30%"}
+#### 2006-2024
+```{r}
+vec_col = c(colfunc(length(unique(df_sp$session_year))-1), "#f40b0b")
+aes_echarts(plot_e = df_ab_rel_freq_rel %>%
+              group_by(session_year) %>%
+              e_charts(session_week) %>%
+              e_line(sum_ab_rel, symbol='none'),
+            xlab = "Semaine de participation",
+            ylab = "Abondance relative",
+            title = "Abondance par session chaque semaine selon les années",
+            line_color = vec_col)
+```
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+:::
 
-Conseils sur période d'observation
+### Biogéorégions (fréquence relative)
+:::panel-tabset
+#### 2019-2024
+```{r}
+vec_col <- biogeoregions %>%
+  filter(CODE %in% unique(df_biogeo_new$CODE)) %>%
+  as.data.frame() %>% select(colours) %>% unlist() %>% unname()
+aes_echarts(plot_e = df_biogeo_new %>%
+              group_by(CODE) %>%
+              e_charts(session_week) %>%
+              e_line(freq_rel, symbol='none'),
+            xlab = "Semaine de participation",
+            ylab = "Fréquence relative",
+            title = "Fréquence par session chaque semaine selon les biogéorégions",
+            line_color = vec_col)
+```
+
+#### 2006-2018
+```{r}
+vec_col <- biogeoregions %>%
+  filter(CODE %in% unique(df_biogeo_old$CODE)) %>%
+  as.data.frame() %>% select(colours) %>% unlist() %>% unname()
+aes_echarts(plot_e = df_biogeo_old %>%
+              group_by(CODE) %>%
+              e_charts(session_week) %>%
+              e_line(freq_rel, symbol='none'),
+            xlab = "Semaine de participation",
+            ylab = "Fréquence relative",
+            title = "Fréquence par session chaque semaine selon les biogéorégions",
+            line_color = vec_col)
+```
+
+#### 2006-2024
+```{r}
+vec_col <- biogeoregions %>%
+  filter(CODE %in% unique(df_biogeo$CODE)) %>%
+  as.data.frame() %>% select(colours) %>% unlist() %>% unname()
+aes_echarts(plot_e = df_biogeo %>%
+              group_by(CODE) %>%
+              e_charts(session_month) %>%
+              e_line(freq_rel, symbol='none'),
+            xlab = "Mois de participation",
+            ylab = "Fréquence relative",
+            title = "Fréquence par session chaque semaine selon les biogéorégions",
+            line_color = vec_col, xmax=12, l1=3, l2=6, l3=9, l4=12) 
+```
+:::
+
+### Biogéorégions (abondance relative)
+:::panel-tabset
+#### 2019-2024
+```{r}
+vec_col <- biogeoregions %>%
+  filter(CODE %in% unique(df_biogeo_new$CODE)) %>%
+  as.data.frame() %>% select(colours) %>% unlist() %>% unname()
+aes_echarts(plot_e = df_biogeo_new %>%
+              group_by(CODE) %>%
+              e_charts(session_week) %>%
+              e_line(sum_ab_rel, symbol='none'),
+            xlab = "Semaine de participation",
+            ylab = "Abondance relative",
+            title = "Abondance par session chaque semaine selon les biogéorégions",
+            line_color = vec_col)
+```
+
+#### 2006-2018
+```{r}
+vec_col <- biogeoregions %>%
+  filter(CODE %in% unique(df_biogeo_old$CODE)) %>%
+  as.data.frame() %>% select(colours) %>% unlist() %>% unname()
+aes_echarts(plot_e = df_biogeo_old %>%
+              group_by(CODE) %>%
+              e_charts(session_week) %>%
+              e_line(sum_ab_rel, symbol='none'),
+            xlab = "Semaine de participation",
+            ylab = "Abondance relative",
+            title = "Abondance par session chaque semaine selon les biogéorégions",
+            line_color = vec_col)
+```
+
+#### 2006-2024
+```{r}
+vec_col <- biogeoregions %>%
+  filter(CODE %in% unique(df_biogeo$CODE)) %>%
+  as.data.frame() %>% select(colours) %>% unlist() %>% unname()
+aes_echarts(plot_e = df_biogeo %>%
+              group_by(CODE) %>%
+              e_charts(session_month) %>%
+              e_line(sum_ab_rel, symbol='none'),
+            xlab = "Mois de participation",
+            ylab = "Abondance relative",
+            title = "Abondance par session chaque semaine selon les biogéorégions",
+            line_color = vec_col, xmax=12, l1=3, l2=6, l3=9, l4=12) 
+```
+
+:::
+::::
+
+* **Titre** : Variations de la présence de l'espèce dans les jardins au cours de l’année.  
+
+* **Explication** : Chaque courbe de couleur représente la variation de la présence de l’espèce suivant les semaines sur une année (l’année en cours est affichée en rouge).  Pour chaque semaine on calcule la proportion de jardins ayant observé l’espèce parmi l’ensemble des jardins ayant participé cette semaine-là.
+Cette proportion de jardins où l’espèce a été observée, notée fréquence relative sur le graphique, permet de mieux comprendre la phénologie de l’espèce. On peut ainsi observer la période à laquelle elle est la plus observée et donc la plus active. 
+
+::: {.callout-warning title="Interprétation"}
+Faire le lien avec les conseils sur la période d’observation ?
+Insister sur les données "aberrantes” en indiquant qu’il y a peu de chance qu’un individu ait pu être obsevé en hiver, et rassurer en indiquant que c’est un élément qu’on prend en compte au moment d’analyser les données.
+
+Ajouter une phrase générique quand on sait qu'il y a plus d'une génération dans l'année.
+:::
+
+::: {.callout-tip title="Fonctionnalités souhaitées"}
+Pouvoir facilement différencier les années sur le graphique, potentiellement cocher/décocher les années pour les faire apparaît ou non. 
+:::
 
 <!-- ####################################################################### -->
 
-# Grégarité {orientation="columns"}
+# Grégarité
 
-## Graphiques {width="60%"}
+- On considère le nombre d'individus vus en même temps comme une catégorie, et on compte le nombre de sessions rattachées à chaque catégorie. Ensuite on divise en trois catégories (1 / 2 à 4 / 5 et +) et dans le graphique on fait un histogramme pour chaque catégorie.
 
-### Classes d'abondance pour l'espèce
+## Classes d'abondance pour l'espèce
 ```{r}
 histo_grega(df_grega = df_gregarite,
             title = paste0("Distribution de la grégarité de l'espèce ", sp_name))
 ```
 
-### Indice de grégarité par espèce
+* **Titre** : Répartition des participations enregistrées selon le nombre d’individus de l’espèce vus simultanément 
+
+* **Explication** : Est-ce que cette espèce peut être considérée comme “grégaire” ? Ici on s’intéresse au comportement des individus de l’espèce : ont-ils tendance à se regrouper ou à faire cavalier seul ? Si une espèce est grégaire alors on pourrait s’attendre à observer plus souvent au moins deux individus vus simultanément au cours d’une participation au protocole. Pour visualiser cela on peut calculer la proportion des observations où les participants ont vu un seul individu, 2 à 4 individus, 5 à 9 individus et plus de 9 individus.
+
+
+::: {.callout-warning title="Interprétation"}
+Pour l’Amaryllis il y a clairement un patron à interpréter mais je ne sais pas trop comment interpréter le reste, notamment concernant les espèces les plus rares/moins observées. 
+:::
+
+::: {.callout-tip title="Fonctionnalités souhaitées"}
+Potentiellement réduire le nombre de catégories à 3 : 1 seul individu, 2 à 4 individus, 5 et plus ?
+:::
+
+## Indice de grégarité par espèce
 ```{r}
-names_grega = unique(df_gregarite_all %>% arrange(classif) %>% select(nom_espece) %>% as.vector())
-color_txt = rep("black", length(names_grega$nom_espece))
-position_sp = which(unique(names_grega$nom_espece) == sp_name)
+names_grega = unique(df_gregarite_all %>% arrange(classif) %>% select(taxon) %>% as.data.frame())
+color_txt = rep("black", length(names_grega$taxon))
+position_sp = which(unique(names_grega$taxon) == sp_name)
 color_txt[position_sp] = "red"
 
 histo_indice_greg(df_greg_all = df_gregarite_all, color_txt = color_txt)
 ```
 
+**Titre** : Comparaison de la grégarité observée pour l’ensemble des espèces et groupes d’espèces de la liste principale de l’Opération papillons. 
 
-## Texte {width="40%"}
+**Explication** : Ce graphique permet de comparer le niveau de grégarité observé pour les différentes espèces et groupes d’espèces de la liste principale de l’Opération papillons. Pour chaque espèce nous comptabilisons le nombre de participations où elle a été observée, puis nous distinguons la part de ces observations où un seul individu a été observé (en rouge) et celle où plusieurs individus ont été vus simultanément (en vert). Les espèces sont classées du haut vers le bas en ordre décroissant de la proportion des observations où plusieurs individus ont été observés simultanément. 
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-
-::: {.callout-note icon=false}
-
-## Classes d'abondance pour l'espèce
-On calcule la proportion d'individus pour différentes catégorie de nombres d'individus.
+::: {.callout-warning title="Interprétation"}
+Faire le lien entre rareté, probabilité d’observation et perception de la grégarité ? Indiquer que les données permettent de faire émerger des patrons mais que défnir une espèce comme grégaire nécessite un travail de terrain plus poussé ? 
 :::
 
-::: {.callout-note icon=false}
-
-## Indice de grégarité par espèce
-On calcule pour chaque espèce la proportion d'observations où on voit un seul individu et celle où on voit plus d'un individu ainsi que l'écart-type
-:::
 
 <!-- ####################################################################### -->
 
-# Jardins {orientation="columns"}
-
-## Graphiques
+# Jardins
 
 ::: panel-tabset
 ```{r}
@@ -259,7 +611,7 @@ for(i in 1:4) {
      as.data.frame()
   
   df_obs = df_sp %>%
-     filter(abondance != 0) %>%
+     filter(taxon_count != 0) %>%
      group_by(!!sym(lst_param[[i]][[1]])) %>%
      summarise(nobs = n()) %>%
      as.data.frame()
@@ -306,18 +658,8 @@ Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor i
 
 # Test
 
-:::panel-tabset
-## Abondance / Observations
-```{r}
-df_parti_ab = df_dep %>%
-  left_join(reg_dep, by = c("dept_code" = "code_departement"))
-
-ggplot(df_parti_ab, aes(x = ab_rel, y = nb_participation, color = nom_region)) +
-  geom_point()
-```
-
 ## Pic d'activité
 ```{r}
 graph_pic(df_pic = df_date_wm_sqrt)
 ```
-:::
+
