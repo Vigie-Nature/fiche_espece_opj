@@ -298,52 +298,52 @@ df_ab_rel_freq_rel_old <- df_sp_old %>%
 #----- Abondance relative fréquence relative biogéorégions -----#
 # Biogéorégions (code -> Héloïse JEUX)
 # invisible(capture.output({biogeoregions = st_read("carte/region_biogeo_fr/region_biogeographique.shp")}))
-biogeoregions = biogeoregions %>%
-  st_transform(crs = 4326) # passage du lambert 93 au WGS 84
-# Certains sommets sont dupliqués : on corrige les erreurs
-invalid_index <- which(!st_is_valid(biogeoregions))
-biogeoregions[invalid_index, ] <- st_make_valid(biogeoregions[invalid_index, ])
-biogeoregions$colours = c("#FFBA08", "#573280", "#E9806E", "#A6B1E1", "#39A0ED", "#C4EBC8")
-
-fct_biogeo <- function(df, biogeoregions, group = TRUE){
-  df_biogeo = df %>% filter(!is.na(longitude)) %>%
-    select(jardin_id, longitude, latitude) %>% unique()
-  df_biogeo = st_as_sf(df_biogeo, coords = c("longitude", "latitude"), crs = 4326)
-  df_biogeo = st_join(df_biogeo, biogeoregions)
-  df_biogeo = as.data.frame(df_biogeo) %>% select(-geometry)
-  df_biogeo = df %>% left_join(df_biogeo, by = c("jardin_id"="jardin_id"))
-  
-  if (group) {
-    df_biogeo = df_biogeo %>% filter(!is.na(CODE)) %>%
-      mutate(session_week = as.integer(session_week),
-             CODE = if_else(CODE=="MATL", "ATL", CODE),
-             CODE = if_else(CODE=="MMED", "MED", CODE)) %>%
-      group_by(CODE, session_week) %>%
-      summarise(sum_ab_rel = sum(taxon_count)/n_distinct(session_id),
-                freq_rel = if_else(is.na(sum(taxon_count != 0)), 0,
-                                   sum(taxon_count != 0)/n_distinct(session_id)),
-                .groups = 'drop')
-  }
-  return(df_biogeo)
-}
-
-# All data
-df_biogeo = fct_biogeo(df = df_sp, biogeoregions = biogeoregions, group = FALSE)
-df_biogeo = df_biogeo %>% filter(!is.na(CODE)) %>%
-  mutate(session_month = as.integer(strftime(session_date, "%m")),
-         CODE = if_else(CODE=="MATL", "ATL", CODE),
-         CODE = if_else(CODE=="MMED", "MED", CODE)) %>%
-  group_by(CODE, session_month) %>%
-  summarise(sum_ab_rel = sum(taxon_count)/n_distinct(session_id),
-            freq_rel = if_else(is.na(sum(taxon_count != 0)), 0,
-                               sum(taxon_count != 0)/n_distinct(session_id)),
-            .groups = 'drop')
-
-# New data
-df_biogeo_new = fct_biogeo(df = df_sp_new, biogeoregions = biogeoregions)
-
-# Old data
-df_biogeo_old = fct_biogeo(df = df_sp_old, biogeoregions = biogeoregions)
+# biogeoregions = biogeoregions %>%
+#   st_transform(crs = 4326) # passage du lambert 93 au WGS 84
+# # Certains sommets sont dupliqués : on corrige les erreurs
+# invalid_index <- which(!st_is_valid(biogeoregions))
+# biogeoregions[invalid_index, ] <- st_make_valid(biogeoregions[invalid_index, ])
+# biogeoregions$colours = c("#FFBA08", "#573280", "#E9806E", "#A6B1E1", "#39A0ED", "#C4EBC8")
+# 
+# fct_biogeo <- function(df, biogeoregions, group = TRUE){
+#   df_biogeo = df %>% filter(!is.na(longitude)) %>%
+#     select(jardin_id, longitude, latitude) %>% unique()
+#   df_biogeo = st_as_sf(df_biogeo, coords = c("longitude", "latitude"), crs = 4326)
+#   df_biogeo = st_join(df_biogeo, biogeoregions)
+#   df_biogeo = as.data.frame(df_biogeo) %>% select(-geometry)
+#   df_biogeo = df %>% left_join(df_biogeo, by = c("jardin_id"="jardin_id"))
+#   
+#   if (group) {
+#     df_biogeo = df_biogeo %>% filter(!is.na(CODE)) %>%
+#       mutate(session_week = as.integer(session_week),
+#              CODE = if_else(CODE=="MATL", "ATL", CODE),
+#              CODE = if_else(CODE=="MMED", "MED", CODE)) %>%
+#       group_by(CODE, session_week) %>%
+#       summarise(sum_ab_rel = sum(taxon_count)/n_distinct(session_id),
+#                 freq_rel = if_else(is.na(sum(taxon_count != 0)), 0,
+#                                    sum(taxon_count != 0)/n_distinct(session_id)),
+#                 .groups = 'drop')
+#   }
+#   return(df_biogeo)
+# }
+# 
+# # All data
+# df_biogeo = fct_biogeo(df = df_sp, biogeoregions = biogeoregions, group = FALSE)
+# df_biogeo = df_biogeo %>% filter(!is.na(CODE)) %>%
+#   mutate(session_month = as.integer(strftime(session_date, "%m")),
+#          CODE = if_else(CODE=="MATL", "ATL", CODE),
+#          CODE = if_else(CODE=="MMED", "MED", CODE)) %>%
+#   group_by(CODE, session_month) %>%
+#   summarise(sum_ab_rel = sum(taxon_count)/n_distinct(session_id),
+#             freq_rel = if_else(is.na(sum(taxon_count != 0)), 0,
+#                                sum(taxon_count != 0)/n_distinct(session_id)),
+#             .groups = 'drop')
+# 
+# # New data
+# df_biogeo_new = fct_biogeo(df = df_sp_new, biogeoregions = biogeoregions)
+# 
+# # Old data
+# df_biogeo_old = fct_biogeo(df = df_sp_old, biogeoregions = biogeoregions)
 
 #----- Présence moyenne -----#
 df_date_wm = df_sp %>%
