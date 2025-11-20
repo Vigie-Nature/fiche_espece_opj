@@ -13,3 +13,4 @@ liste_principale <- c("Machaons","Flambés", "Demi-deuils",
                       "Hespérides orangées", "Moro-sphinx")
 # Départements avec numéro et région
 reg_dep = read.csv2("data/departements-france.csv", sep=",")
+invisible(capture.output({biogeoregions = st_read("carte/region_biogeo_fr/region_biogeographique.shp")}))
