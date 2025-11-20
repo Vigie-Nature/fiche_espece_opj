@@ -14,7 +14,8 @@ suppressWarnings(suppressMessages(library(plotly))) # 4.10.4
 suppressWarnings(suppressMessages(library(RMySQL))) # 0.10.29
 library(rlang) # 1.1.4
 library(scales) # 1.3.0
-suppressWarnings(suppressMessages(library(sf))) # 1.0-19
+library(sf)
+#suppressWarnings(suppressMessages(library(sf))) # 1.0-19
 library(stringr) # 1.5.1
 library(tibble) # 3.2.1
 library(tidyr) # 1.3.1
