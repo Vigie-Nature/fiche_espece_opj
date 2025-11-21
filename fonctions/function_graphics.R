@@ -471,8 +471,8 @@ histo_indice_greg <- function(df_greg_all, x = "taxon", order = "classif",
 graph_ratio_jardin <- function(df_jard, x, y = "ratio", image, signif, cat_jard,
                                lim_y, xlab, ylab = "Ratio des observations"){
   ggplot(df_jard, aes(x = !!sym(x), y = !!sym(y))) +
-    geom_point(size = 4, color = "red") +
-    #geom_image(aes(image = !!sym(image)), size = 0.14) +
+    #geom_point(size = 4, color = "red") +
+    geom_image(aes(image = !!sym(image)), size = 0.14) +
     geom_text(aes(x = !!sym(x), y = ratio+0.1, label = !!sym(signif)), size = 6) +
     annotate("rect",xmin = -Inf, xmax = Inf, ymin = 1, ymax = Inf, alpha = 0.1, fill = "#59d7ff") +
     annotate("rect",xmin = -Inf, xmax = Inf, ymin = -Inf, ymax = 1, alpha = 0.1, fill = "red") +
