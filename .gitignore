@@ -19,6 +19,10 @@ data/photos/*.jpg
 data/photos/*.png
 # Ne pas ignorer Amaryllis.jpg
 !data/photos/Amaryllis.jpg
+!data/photos/Argus verts.jpg
+!data/photos/Belle-dame.jpg
+!data/photos/Paon du jour.jpg
+!data/photos/Piérides blanches.jpg
 */*.geojson
 data/donnees_historiques/
 data/articles_pour_espece.csv
