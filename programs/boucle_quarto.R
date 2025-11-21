@@ -13,7 +13,7 @@ if (Sys.getenv("CI") != "true") {
 
 #liste principale des papillons de l'observatoire
 if (Sys.getenv("CI") == "true") {
-  liste_principale <- c("Amaryllis", "Argus verts", "Belle-dame", "Paon du jour")
+  liste_principale <- c("Amaryllis", "Argus verts", "Belle-dame", "Paon du jour", "Piérides blanches")
 }else{
   liste_principale <- c("Amaryllis", "Argus verts", "Belle-dame", "Paon du jour", "Piérides blanches")
   # liste_principale <- c("Amaryllis", "Argus verts", "Belle-dame", "Citrons",
