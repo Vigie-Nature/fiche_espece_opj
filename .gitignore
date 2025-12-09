@@ -10,6 +10,7 @@
 data/photos_angelique
 data/history/
 **/*.html
+!docs/index.html
 html/
 out/graphiques/
 */*test*
