@@ -35,6 +35,12 @@ out/data_opj_ovidal.csv
 data/table_user_2019.csv
 programs/histo
 carte/altitude/
+data/scripts_nicolas/*
+fonctions/create_df_opj (old version).R
+old_dockerfile.txt
+carte/region_biogeo_fr/region_biogeographique.shp.xml
+carte/region_biogeo_fr/region_biogeographique.sbx
+carte/region_biogeo_fr/region_biogeographique.sbn
 
 
 !carte/region_biogeo_fr/region_biogeographique.shp
