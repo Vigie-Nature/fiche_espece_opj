@@ -30,10 +30,23 @@ if (!exists("is.histo")) {
 #---------- Dataframe initial ----------#
 #########################################
 
+
+
+################################################################################
+#######################  !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! ################
+################## LIGNE TEMPORAIRES ###########################################
+
+# Enlever les commentaires quand c'est fini
 # Df de toutes les espèces
-if (!exists("df_opj")) {
+if (!exists("df_data")) {
   source("fonctions/create_df_opj.R")
 }
+
+# is.histo = FALSE
+# df_data = read.csv2("data/rdata/export_opj_v3.csv")
+# df_data = df_data %>% mutate(session_week = strftime(as.Date(session_date), "%V"))
+
+################################################################################
 
 if (is.histo) {
   filt_year = 2006
@@ -52,12 +65,13 @@ df_opj = df_opj %>%
          session_date = as.Date(session_date),
          an_sem = if_else(as.numeric(session_week) < 10,
                           paste0(session_year, "-S0", session_week),
-                          paste0(session_year, "-S", session_week))) 
+                          paste0(session_year, "-S", session_week))) %>%
+    left_join(reg_dep, by = c("dept_code" = "code_departement"))
 
-if (!is.histo) {
-  df_opj = df_opj %>%
-    left_join(reg_dep, by = c("dept_code" = "code_departement")) # ajout des départements
-}
+# if (!is.histo) {
+#   df_opj = df_opj %>%
+#     left_join(reg_dep, by = c("dept_code" = "code_departement")) # ajout des départements
+# }
 
 rm("df_data")
 rm("df_old_data")
@@ -454,6 +468,5 @@ df_jardin_point_new_old = df_sp %>%
   mutate(Présence = if_else(sum_ab == 0, "Espèce non observée", "Espèce observée"),
          alpha = if_else(sum_ab == 0, 0.7, 1)) %>%
   arrange(Présence)
-
 
 
