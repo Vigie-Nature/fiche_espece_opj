@@ -70,6 +70,7 @@ fct_raster <- function(df, fill = "is.butterfly.2", df_carte){
     geom_sf(data = df_carte, fill = NA, color = "black", size = 0.2) +
     geom_sf(data = df, aes(fill = !!sym(fill)), color = NA, size = 0.1, alpha = 0.9) +
     theme_minimal() +
+    labs(fill = "Présence du taxon") +
     coord_sf()
   if (fill == "is.butterfly.2") {
     gg <- gg + scale_fill_manual(values = c("Observé dans un jardin" = "#00E803",
