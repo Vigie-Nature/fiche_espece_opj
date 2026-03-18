@@ -43,6 +43,7 @@ source("fonctions/function_import_from_mosaic.R")
 # Création des data frame
 source("fonctions/create_df_opj.R")
 source("fonctions/create_df_one_sp.R")
+source("fonctions/function_raster.R")
 ```
 
 # Filtres généraux
@@ -60,6 +61,7 @@ Argus verts, Brun des pélargoniums, Cuivré, Hespérides tachetées,
 Hespérides orangées, Moro-sphinx)
 
 2 data frame :
+
 - un data frame de toutes les observations (df_opj)
 - un data frame avec uniquement le taxon de la fiche (df_sp)
 
@@ -159,8 +161,6 @@ Ajouter des informations sur le graphique pour distinguer les espèces communes 
 Si on décide d'avoir une partie avec des cartes : carroussel pour les cartes avec à chaque fois la carte et un encart avec un texte explicatif à côté
 :::
 
-:::panel-tabset
-
 ## Jardins
 
 - On remplace par les raster
@@ -205,72 +205,20 @@ Faire le lien avec ce qu’on connaît de la distribution de l’espèce ?
 Pouvoir zoomer/dézoomer sur la carte. Afficher de l’information en survolant/cliquant sur un point avec par exemple le nombre d’année de participation et le nombre de sessions d’observation (nombre de fois où le jardin a transmis les données).  
 :::
 
-::::panel-tabset
-## Abondance par département
 
-:::panel-tabset
-#### 2019-2024
+## Carte raster
+
+Nouveau type de représentation de la cartographie
+
 ```{r}
-print(carte_ab(shape_map = france, fill_map = df_dep_new$cl_qual, fill_color = couleurs,
-         fill_cat = cat_carte_tendance_moy, fill_title = "Abondance relative entre 2019 et 2024",
-         map_title = paste0("Carte de distribution de l'abondance relative de l'espèce ", sp_name)))
-
-```
-#### 2006-2018
-```{r}
-print(carte_ab(shape_map = france, fill_map = df_dep_old$cl_qual, fill_color = couleurs,
-         fill_cat = cat_carte_tendance_moy, fill_title = "Abondance relative entre 2006 et 2018",
-         map_title = paste0("Carte de distribution de l'abondance relative de l'espèce ", sp_name)))
-
-```
-#### 2006-2024
-```{r}
-print(carte_ab(shape_map = france, fill_map = df_dep$cl_qual, fill_color = couleurs,
-         fill_cat = cat_carte_tendance_moy, fill_title = "Abondance relative entre 2006 et 2024",
-         map_title = paste0("Carte de distribution de l'abondance relative de l'espèce ", sp_name)))
-
-```
-:::
-
-## Abondance par région
-
-:::panel-tabset
-#### 2019-2024
-```{r}
-print(carte_ab(shape_map = france_reg, fill_map = df_reg_new$cl_qual, fill_color = couleurs,
-         fill_cat = cat_carte_tendance_moy, fill_title = "Abondance relative entre 2019 et 2024",
-         map_title = paste0("Carte de distribution de l'abondance relative de l'espèce ", sp_name)))
-
+grille_valeurs = create_df_raster(df_opj = df_sp, grille = grille10, carte = fr)
 ```
 
-#### 2006-2018
 ```{r}
-print(carte_ab(shape_map = france_reg, fill_map = df_reg_old$cl_qual, fill_color = couleurs,
-         fill_cat = cat_carte_tendance_moy, fill_title = "Abondance relative entre 2006 et 2018",
-         map_title = paste0("Carte de distribution de l'abondance relative de l'espèce ", sp_name)))
-
+fct_raster(df = grille_valeurs, df_carte = fr, fill = "is.butterfly.2")
 ```
 
-#### 2006-2024
-```{r}
-print(carte_ab(shape_map = france_reg, fill_map = df_reg$cl_qual, fill_color = couleurs,
-         fill_cat = cat_carte_tendance_moy, fill_title = "Abondance relative entre 2006 et 2024",
-         map_title = paste0("Carte de distribution de l'abondance relative de l'espèce ", sp_name)))
 
-```
-:::
-
-::::
-
-* **Titre** : Carte de la distribution de l’abondance relative de cette espèce par département. 
-
-* **Explication** : La carte montre pour chaque département l’abondance relative de cette espèce, c’est à dire le nombre d’individus renseigné divisé par le nombre de jardins actifs dans le département. 
-
-::: {.callout-warning title="Interprétation"}
-ATTENTION la carte est compliquée à interpréter, dans le sens où des départements avec des niveaux très faibles de participation auront tendance à montrer des valeurs plus élevées d'abondance relative. C’est pourquoi on a des abondances plus fortes sur la diagonale du vide. 
-:::
-
-:::
 
 # Phénologie inter-annuelle
 
